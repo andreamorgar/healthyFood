@@ -434,6 +434,22 @@ with sidebar:
         placeholder="Example: spaghetti with meatballs",
         width=300
     )
+    st.markdown("#### ℹ️ About this app")
+    st.markdown(
+        """
+        This application is made to check the nutritional composition of foods,
+        their potential health impacts, and their role in healthy aging.
+
+        - The data comes from various sources like FooDB, Github, Pubmed and other scientific sites and studies.
+        - The data was stored and formatted using MongoDB.
+        - The data was added later to a graph database to find relationships between foods and diseases, using Neo4j.
+        - The way of finding ingredients from a recipe is done thanks to a LLM made with Ollama.
+        - The app was created and designed using Streamlit. 
+
+        - This app was made from scratch by **Amadeo Martínez Sánchez** as a final degree project.
+        """,
+        unsafe_allow_html=True
+    )
 
 with main:
     query = st.session_state.search_query.lower()
