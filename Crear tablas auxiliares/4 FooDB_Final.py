@@ -1,10 +1,4 @@
-from pymongo import MongoClient
-
-# Requires the PyMongo package.
-# https://api.mongodb.com/python/current
-
-client = MongoClient('mongodb://localhost:27017/')
-result = client['Colecciones_Finales']['FooDB_Alimento_Constituyentes'].aggregate([
+[
     {
         '$lookup': {
             'from': 'Food_Simplificada', 
@@ -14,8 +8,7 @@ result = client['Colecciones_Finales']['FooDB_Alimento_Constituyentes'].aggregat
         }
     }, {
         '$unwind': {
-            'path': '$food_info', 
-            'preserveNullAndEmptyArrays': True
+            'path': '$food_info'
         }
     }, {
         '$addFields': {
@@ -25,7 +18,14 @@ result = client['Colecciones_Finales']['FooDB_Alimento_Constituyentes'].aggregat
         }
     }, {
         '$project': {
-            'food_info': 0
+            'id': '$id', 
+            'FooDB_ID': '$FooDB_ID', 
+            'food_name': '$food_name', 
+            'group': '$group', 
+            'subgroup': '$subgroup', 
+            'group_id': '$group_id', 
+            'constituents': '$constituents', 
+            'citation': '$citation'
         }
     }, {
         '$out': {
@@ -33,4 +33,4 @@ result = client['Colecciones_Finales']['FooDB_Alimento_Constituyentes'].aggregat
             'coll': 'FooDB_Alimento_Constituyentes'
         }
     }
-])
+]

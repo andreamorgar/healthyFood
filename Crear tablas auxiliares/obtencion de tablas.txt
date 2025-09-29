@@ -1,0 +1,31 @@
+Tabla Food:
+1.
+-FooDB_grupo_id.py -> Crear ID de grupo -> FooDB_Grupos_ID
+2.
+-Food_Simplificada.py -> Añadir ID a sólo las variables relevantes de Food -> Food_Simplificada
+
+
+Tabla Fisiologia… :
+ -> Se actualiza igual que Food_Simplificada, añadiendo datos de los grupos de ID -> FAALD_FooDB_Id
+
+Tabla Food_Disease_Relation_Dataset:
+-> A mano, se añaden fuentes que muestren información poco precisa, se eliminan objetos no importantes/no relacionados con alimentos. Después se eliminan los campos no importantes y se une "is_cause" con "is_Treat" para obtener "suitable for disease". Se añade ID de alimento. -> FDR_FooDB_Id 
+
+Tabla Alimento_Enfermedad_Completa:
+ -> Se unen ambas tablas y se añade ID de grupo. -> Alimento_Enfermedad_Completa
+
+
+Tabla FooDB:
+
+3. FooDB_Pivotado.py -> Existen fallos y datos vacíos en FooDB, rellenamos con Food, Compounds y Nutrients. Después, obtenemos sólo los constituyentes con las fuentes "USDA" Y "DTU", devolviendo campos importantes. Pivotamos la tabla para que todos los compuestos estén dentro del objeto que corresponda al alimento. -> FooDB_Pivotado
+4. FooDB_Final.py -> Añadir ID de grupo a la tabla final -> FooDB_Alimento_Constituyentes
+
+Tabla Cooking_Methods:
+ -> No cambia, igual que fue creada a mano originalmente
+
+Tabla Envejecimiento Saludable:
+5. ES_Rango.py -> Obtener máx y min. de cada "aspecto" de envejecimiento saludable, y dividir el rango en 5 partes iguales (0-malo 4-bueno), añadiendo a qué rango pertenece cada uno de los valores del objeto -> Es_Rango y ES_min_max
+-> Crear ES_FooDB: A mano, indicar a qué grupo/alimentos pertenece cada objeto de la tabla original de Envejecimiento Saludable.
+6. ES_Completa.py: Unir ES_Rango con ES_FooDB -> Es_Alterada
+7.ES_Final.py ->Separar food/grupo en documentos diferentes para simplificar la búsqueda en Neo4j -> ES_Final
+
