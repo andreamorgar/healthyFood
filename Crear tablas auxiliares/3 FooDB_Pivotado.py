@@ -34,7 +34,7 @@ for i, entry in enumerate(filtered_entries, start=1):
         if food_id in id_to_food_name:
             entry["orig_food_common_name"] = id_to_food_name[food_id]
 
-    #Corregimos constituyente
+    # Corregimos constituyente
     source_type = entry.get("source_type")
     source_id = entry.get("source_id")
 
@@ -44,15 +44,29 @@ for i, entry in enumerate(filtered_entries, start=1):
         elif source_type == "Compound" and source_id in id_to_compound_name:
             entry["orig_source_name"] = id_to_compound_name[source_id]
 
-    #Renombrar y mostrar solo campos importantes
+    # Valores originales
+    content_raw = entry.get("standard_content", "0")
+    try:
+        content = float(content_raw) if content_raw not in (None, "", "NaN") else 0.0
+    except ValueError:
+        content = 0.0  # Si viene algo raro no rompe
+
+    unit = entry.get("orig_unit")
+
+    # ⚡ Conversión: si >1000 mg/100g => g/100g
+    if unit == "mg/100 g" and content > 1000:
+        content = content / 1000
+        unit = "g/100 g"
+
+    # Renombrar y mostrar solo campos importantes
     processed.append({
         "id": entry.get("id"),
         "FooDB_ID": entry.get("food_id"),
         "food_name": entry.get("orig_food_common_name"),
         "constituent": entry.get("orig_source_name"),
-        "constituent_unit": entry.get("orig_unit"),
+        "constituent_unit": unit,
         "citation": entry.get("citation"),
-        "content": entry.get("standard_content", "0")
+        "content": content
     })
 
 #------ 5 PIVOTAR TABLA ------
