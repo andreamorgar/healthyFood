@@ -1,5 +1,4 @@
 import json
-import math
 
 #------ 1 CARGAR ARCHIVOS ------
 with open("ES.json", "r", encoding="utf-8") as f:
@@ -9,37 +8,29 @@ with open("ES.json", "r", encoding="utf-8") as f:
 if isinstance(data, dict):
     data = [data]
 
-#------ 2 CALCULAR RANGO DE DATOS ------
-ranges = {}
-for item in data:
-    for key, value in item.items():
-        if key == "Name":
-            continue
-        try:
-            num_value = float(str(value).replace(",", "."))
-        except ValueError:
-            continue
+#------ 2 DEFINIR RANGOS FIJOS ------
+# Definimos los límites de cada categoría
+RANGE_LIMITS = {
+    "Muy negativo": (0.52, 0.76),
+    "Negativo": (0.76, 0.90),
+    "Neutral": (0.90, 1.1),
+    "Positivo": (1.10, 1.51),
+    "Muy positivo": (1.51, 1.92),
+}
 
-        if key not in ranges:
-            ranges[key] = {"min": num_value, "max": num_value}
-        else:
-            ranges[key]["min"] = min(ranges[key]["min"], num_value)
-            ranges[key]["max"] = max(ranges[key]["max"], num_value)
-
-#Guardamos los rangos en un archivo auxiliar
+# Opcional: guardar estos rangos como referencia
 with open("ES_min_max.json", "w", encoding="utf-8") as f:
-    json.dump(ranges, f, ensure_ascii=False, indent=2)
-print(f"\nArchivo auxiliar guardado como ES_min_max.json")
+    json.dump(RANGE_LIMITS, f, ensure_ascii=False, indent=2)
+print("\nArchivo auxiliar guardado como ES_min_max.json")
 
-#------ 3 OBTENEMOS EL VALOR DEL 1 AL 4 ------
-def get_level(value, min_val, max_val):
-    if max_val == min_val:
-        return 0
-    step = (max_val - min_val) / 5
-    level = math.floor((value - min_val) / step)
-    return min(max(level, 0), 4)
+#------ 3 FUNCIÓN PARA OBTENER EL NIVEL ------
+def get_level(value):
+    for i, (label, (low, high)) in enumerate(RANGE_LIMITS.items()):
+        if low <= value < high or (i == 4 and value <= high):  # incluye el límite superior del último
+            return i
+    return None  # si el valor está fuera de los rangos
 
-#------ 4 AÑADIMOS CAMPOS CON EL RANGO ------
+#------ 4 AÑADIMOS CAMPOS CON EL NIVEL ------
 for item in data:
     for key in list(item.keys()):
         if key == "Name":
@@ -49,13 +40,12 @@ for item in data:
         except ValueError:
             continue
 
-        if key in ranges:
-            min_val = ranges[key]["min"]
-            max_val = ranges[key]["max"]
-            item[f"{key}_level"] = get_level(num_value, min_val, max_val)
+        level = get_level(num_value)
+        if level is not None:
+            item[f"{key}_level"] = level
 
-#Guardamos el JSON resultado
+#------ 5 GUARDAR RESULTADOS ------
 with open("ES_Rango.json", "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
-print(f"\nArchivo final guardado como ES_Rango.json")
+print("\nArchivo final guardado como ES_Rango.json")

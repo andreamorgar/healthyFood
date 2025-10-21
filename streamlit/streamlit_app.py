@@ -10,12 +10,14 @@ from langchain_ollama import OllamaLLM
 import json
 import re
 import random
+from rapidfuzz.distance import JaroWinkler
+from sentence_transformers.util import cos_sim
 
 #------ 1 CARGAR E INICIALIZAR OLLAMA Y NEO4J ------
 
 # LLM de Ollama
 llm = OllamaLLM(model="llama3",
-                    options={"temperature": 0.6})
+                    options={"temperature": 0.7})
 
 # Datos de la base de datos de  Neo4j
 server = "neo4j://127.0.0.1:7687"
@@ -42,19 +44,23 @@ prompt_ingredients = PromptTemplate(
 include its own preparation method.
 
 Rules:
-- The global preparation must reflect the main cooking method of the recipe.
 - Each ingredient must have its own preparation. 
 - If the preparation method is not explicitly stated, infer the most likely one. 
 - Do NOT default to "raw" unless the ingredient is clearly uncooked (e.g., salad vegetables). 
+- Remove all plural endings such as 's', 'es', or irregular forms like 'potatoes' → 'potato', 'tomatoes' → 'tomato', 'leaves' → 'leaf', etc.
 
 Return the result strictly as a JSON object with no explanations, no preamble, and no extra text. 
 The JSON object must have this exact structure:
 
 {{
-  "preparation": "<one word, chosen strictly from: 'steamed', 'fried', 'raw', 'boiled', 'roasted', 'pan-fried, 'stewed', 'sautéed', 'cooked'>",
+  "instructions":[
+    {{
+        "text": "<each one of the steps of the recipe>"
+    }}
+  ],
   "ingredients": [
     {{
-      "name": "<ingredient name only, clean>",
+      "name": "<ingredient name only, clean, singular>",
       "preparation": "<one word, chosen strictly from: 'steamed', 'fried', 'raw', 'boiled', 'roasted', 'pan-fried, 'stewed', 'sautéed', 'cooked'>",
       "amount": "<amount with unit, e.g., '1 cup', '200 grams', '2 units'>",
       "weight": "<normalized weight in grams>"
@@ -92,7 +98,7 @@ def load_embedding_model():
 @st.cache_data
 def load_food_list():
     food_list = run_query(
-        "MATCH (f:Composition) RETURN f.food_name AS food_name, f.id AS id, f.FooDB_ID AS food_id"
+        "MATCH (f:Composition) RETURN f.food_name AS food_name, f.composition_ID AS id, f.Food_ID AS food_id"
     )
     df = pd.DataFrame(food_list)
     df['food_name'] = df['food_name'].fillna('').astype(str)
@@ -113,72 +119,72 @@ def load_facts(file_path="facts.txt"):
 
 
 #------ 4 BUSCADOR DE INGREDIENTES ------
-
-def find_best_matches(input_ingredients, df, db_embeddings, model, score_threshold=0.5):
+def normalize_name(text):
+    text = text.lower().strip()
+    text = re.sub(r'[^a-z\s]', '', text)  # elimina puntuación
+    text = re.sub(r'\s+', ' ', text)
+    return text
+    
+def find_best_matches(input_ingredients, df, db_embeddings, model, score_threshold=0.4):
     results = []
+
     for ingredient in input_ingredients:
-        input_embedding = model.encode(ingredient, convert_to_tensor=True)
-        cosine_scores = cos_sim(input_embedding, db_embeddings)[0].cpu().numpy()
+        input_emb = model.encode(ingredient, convert_to_tensor=True)
+        cos_scores = cos_sim(input_emb, db_embeddings)[0].cpu().numpy()
 
-        df['cosine_score'] = cosine_scores
-        df['name_match'] = df['food_name'].str.lower().str.contains(ingredient.lower())
+        df["semantic_score"] = cos_scores
+        df["string_score"] = df["food_name"].apply(lambda x: JaroWinkler.normalized_similarity(x.lower(), ingredient.lower()))
 
-        candidates = df[
-            (df['name_match']) &
-            (~df['is_processed']) &
-            (df['cosine_score'] > score_threshold)
-        ].copy()
+        # Combinamos scores
+        df["final_score"] = 0.7 * df["semantic_score"] + 0.3 * df["string_score"]
 
-        if any(candidates['is_raw']):
-            candidates = candidates[candidates['is_raw']]
+        # Filtramos términos procesados
+        candidates = df[~df["is_processed"]].copy()
 
-        if not candidates.empty:
-            best_match = candidates.sort_values(by='cosine_score', ascending=False).iloc[0]
-        else:
-            fallback = df[~df['is_processed']]
-            if fallback.empty:
-                fallback = df
-            best_match = fallback.sort_values(by='cosine_score', ascending=False).iloc[0]
+        # Tomamos el mejor
+        best = candidates.sort_values(by="final_score", ascending=False).iloc[0]
 
         results.append({
             "input": ingredient,
-            "food_name": best_match["food_name"],
-            "id": int(best_match["id"]),
-            "food_id": int(best_match["food_id"]),
-            "score": round(float(best_match["cosine_score"]), 4)
+            "food_name": best["food_name"],
+            "id": int(best["id"]),
+            "food_id": int(best["food_id"]),
+            "score": round(float(best["final_score"]), 4)
         })
+
     return results
+
+
 
 
 #------ 5 FUNCIONES AUXILIARES CON CACHE ------
 
 @st.cache_data
 def get_composition(id):
-    constituents = run_query(f'MATCH (c:Composition {{id: {id}}}) RETURN c.constituents')
+    constituents = run_query(f'MATCH (c:Composition {{composition_ID: {id}}}) RETURN c.constituents')
     return json.loads(constituents[0]["c.constituents"])
 
 @st.cache_data
 def get_disease(id):
     query = f'''
-        MATCH (f:Food {{FooDB_id:{id}}})-[r:Affects]->(d:Disease)
-        RETURN d.Disease AS Disease, 
-               r.`Suitable for Disease` AS Suitable, 
-               r.Link AS link
+        MATCH (f:Food {{Food_ID:{id}}})-[r:affects]->(d:Disease)
+        RETURN d.disease AS Disease, 
+               r.`suitable for disease` AS Suitable, 
+               r.disease_link AS link
     '''
     return run_query(query)
 
 def get_healthy_aging(food_id):
     query = f'''
-        MATCH (h:`Envejecimiento Saludable` {{FooDB_ID:{food_id}}})
+        MATCH (h:Aging {{food_ID:{food_id}}})
         RETURN h
     '''
     result = run_query(query)
     return result if result else None
 
-
 def get_preparation(method):
     preparation = run_query(
-        f'MATCH (m:Cooking_Methods {{Cooking_Method: "{method}"}}) RETURN m.Health_Impact AS impact, m.Sentence AS sentence, m.link AS link'
+        f'MATCH (m:Preparation {{cooking_method: "{method}"}}) RETURN m.health_impact AS impact, m.sentence AS sentence, m.preparation_link AS link'
     )
     return preparation[0] if preparation else None
 
@@ -192,7 +198,7 @@ def extract_numeric(val):
     match = re.search(r"[-+]?\d*\.?\d+", str(val))
     return float(match.group()) if match else 0
 
-def get_tags(food_id):
+def get_tags(food_id, preparation=None):
     tags_html = []
 
     # --- HEALTH IMPACT ---
@@ -215,7 +221,7 @@ def get_tags(food_id):
         levels = []
         for result in results:
             he = result.get("h", {})
-            level = he.get("Healthy Aging_level")
+            level = he.get("healthy_aging_level")
             if level is not None:
                 levels.append(level)
 
@@ -233,28 +239,23 @@ def get_tags(food_id):
             tags_html.append("<span style='background-color:#5E5E5E; color:white; padding:3px 8px; border-radius:8px; font-size:12px; margin-left:5px;'>No Aging Data</span>")
     else:
         tags_html.append("<span style='background-color:#5E5E5E; color:white; padding:3px 8px; border-radius:8px; font-size:12px; margin-left:5px;'>No Aging Data</span>")
-
+    
+    if preparation: 
+        prep_data = get_preparation(preparation) 
+        if prep_data: 
+            impact = (prep_data.get("impact") or "").lower() 
+            if impact == "good": 
+                color = "#28a745" 
+            elif impact == "moderate": 
+                color = "#e67e22" 
+            elif impact == "bad": 
+                color = "#e74c3c" 
+            else: 
+                color = "#5E5E5E" 
+        else: color = "#5E5E5E" 
+        tags_html.append( f"<span style='background-color:{color}; color:white; padding:3px 8px; border-radius:8px; font-size:12px; margin-left:5px;'>{preparation.capitalize()}</span>" )
 
     return " ".join(tags_html)
-
-
-def box_container(title, content_func, *args, **kwargs):
-    st.markdown(
-        f"""
-        <div style='
-            border: 2px solid #ccc;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: #fafafa;'>
-            <h4 style='margin-top:0'>{title}</h4>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    # Creamos un contenedor Streamlit para meter el contenido
-    with st.container():
-        content_func(*args, **kwargs)
 
 def show_health_impact(food_id):
     diseases = get_disease(food_id)
@@ -268,7 +269,7 @@ def show_health_impact(food_id):
                     st.error(f"⚠️ Negative impact on **{disease['Disease']}** \n\n[More Info]({disease['link']})")
         else:
             st.info("No known health impacts.")
-
+            
 def show_nutrient_data(id):
     constituents = get_composition(id)
 
@@ -276,11 +277,15 @@ def show_nutrient_data(id):
     nutrient_aliases = {
         "protein, total": "Proteins",
         "protein": "Proteins",
+        "proteins": "Proteins",
         "carbohydrates, total": "Carbohydrate",
+        "carbohydrate": "Carbohydrate",
         "energy": "Energy",
         "fat, total (lipids)": "Fat",
+        "fat":"Fat",
         "total lipid (fat)": "Fat",
         "fiber, total dietary": "Fiber",
+        "fiber (dietary)": "Fiber",
         "fiber, dietary": "Fiber",
         "Fiber (dietary)": "Fiber"
     }
@@ -288,19 +293,28 @@ def show_nutrient_data(id):
     def normalize_nutrient_name(name):
         return nutrient_aliases.get(name.strip().lower(), name)
 
-    # --- Normalizar claves de constituents ---
+    # --- Normalizar y combinar nutrientes, conservando unidades ---
     normalized_constituents = {}
     for k, v in constituents.items():
         norm_key = normalize_nutrient_name(k.lower())
-        # si ya existe, guardamos el valor más alto
-        if norm_key in normalized_constituents:
-            prev_val = extract_numeric(normalized_constituents[norm_key])
-            new_val = extract_numeric(v)
-            normalized_constituents[norm_key] = max(prev_val, new_val)
-        else:
-            normalized_constituents[norm_key] = v
 
-    # Ordenar por valor
+        num_val = extract_numeric(v)  # extrae solo el número
+        unit = v.strip().replace(str(num_val), "").strip()  # extrae la unidad
+
+        if norm_key in normalized_constituents:
+            prev_val_str = normalized_constituents[norm_key]
+            prev_num = extract_numeric(prev_val_str)
+            prev_unit = prev_val_str.replace(str(prev_num), "").strip()
+
+            # guardamos el valor mayor, manteniendo la unidad
+            if num_val > prev_num:
+                normalized_constituents[norm_key] = f"{num_val} {unit}".strip()
+            else:
+                normalized_constituents[norm_key] = f"{prev_num} {prev_unit}".strip()
+        else:
+            normalized_constituents[norm_key] = f"{num_val} {unit}".strip()
+
+    # Ordenar por valor numérico
     sorted_constituents = sorted(
         normalized_constituents.items(),
         key=lambda x: extract_numeric(x[1]),
@@ -333,7 +347,6 @@ def show_nutrient_data(id):
             st.markdown("##### Full nutrient list")
             df_nutrients = pd.DataFrame(other_nutrients, columns=["Nutrient", "Value"])
             st.dataframe(df_nutrients, use_container_width=True, hide_index=True)
-
 
 def show_healthy_aging(food_id):
     results = get_healthy_aging(food_id)
@@ -381,19 +394,19 @@ def show_healthy_aging(food_id):
         for result in results:
             he = result.get("h", {})
 
-            group = he.get("Food", "Unknown group")
+            group = he.get("aging_group", "Unknown group")
             st.markdown(
                 f"##### The group **{group}** affects how a person ages in this way:"
             )
 
             # Metrics to display
             metrics = {
-                "Healthy Aging": he.get("Healthy Aging_level"),
-                "Cognitive Function": he.get("Intact Cognitive Function_level"),
-                "Physical Function": he.get("Intact physical function_level"),
-                "Mental Health": he.get("Intact mental health_level"),
-                "Chronic Diseases": he.get("Free From Chronic Disease_level"),
-                "Survived 70+ Years": he.get("Survived For 70 Years Of Age_level"),
+                "Healthy Aging": he.get("healthy_aging_level"),
+                "Cognitive Function": he.get("intact_cognitive_function_level"),
+                "Physical Function": he.get("intact_physical_function_level"),
+                "Mental Health": he.get("intact_mental_health_level"),
+                "Chronic Diseases": he.get("free_from_chronic_disease_level"),
+                "Survived 70+ Years": he.get("survived_for_70_years_of_age_level"),
             }
 
             cols = st.columns(len(metrics))
@@ -404,52 +417,30 @@ def show_healthy_aging(food_id):
                     unsafe_allow_html=True,
                 )
 
-
-
-
-
 def show_preparation(method, context="recipe"):
     preparation = get_preparation(method)
     if preparation:
         impact = (preparation.get("impact") or "").lower()
         sentence = preparation.get("sentence", "")
         link = preparation.get("link", "")
-        if context == "recipe":
-            if impact == "bad":
-                st.error(f"### 👩‍🍳 **Health impact of recipe preparation ({method}):**  \n❌ {sentence} \n\n[More Info]({link})")
-            elif impact == "moderate":
-                st.warning(f"### 👩‍🍳 **Health impact of recipe preparation ({method}):**  \n⚠️ {sentence} \n\n[More Info]({link})")
-            elif impact == "good":
-                st.success(f"### 👩‍🍳 **Health impact of recipe preparation ({method}):**  \n✅ {sentence} \n\n[More Info]({link})")
-            else:
-                st.info(f"### 👩‍🍳 **Health impact of recipe preparation ({method}):** \n(no health info available)")
-        else:
-            with st.expander("👩‍🍳 Preparation Impact", expanded=False):
-                if preparation:
-                    impact = (preparation.get("impact") or "").lower()
-                    sentence = preparation.get("sentence", "")
-                    link = preparation.get("link", "")
+        with st.expander("👩‍🍳 Preparation Impact", expanded=False):
+            if preparation:
+                impact = (preparation.get("impact") or "").lower()
+                sentence = preparation.get("sentence", "")
+                link = preparation.get("link", "")
 
-                    if impact == "bad":
-                        st.error(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:**  \n❌ {sentence} \n\n[More Info]({link})")
-                    elif impact == "moderate":
-                        st.warning(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:**  \n⚠️ {sentence} \n\n[More Info]({link})")
-                    elif impact == "good":
-                        st.success(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:**  \n✅ {sentence} \n\n[More Info]({link})")
-                    else:
-                        st.info(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:** \n(no health info available)")
+                if impact == "bad":
+                    st.error(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:**  \n❌ {sentence} \n\n[More Info]({link})")
+                elif impact == "moderate":
+                    st.warning(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:**  \n⚠️ {sentence} \n\n[More Info]({link})")
+                elif impact == "good":
+                    st.success(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:**  \n✅ {sentence} \n\n[More Info]({link})")
+                else:
+                    st.info(f"##### 👩‍🍳 **Impact of preparing the ingredient as {method}:** \n(no health info available)")
 
     else:
-        if context == "recipe":
-            st.info(f"### 👩‍🍳 **Health impact of recipe preparation ({method}):** \n(no health info available)")
-    
-        else:
-            with st.expander("👩‍🍳 Preparation Impact", expanded=False):
-                st.info(f"##### 👩‍🍳 **Impact preparing the ingredient as {method}:** \n(no health info available)")
-
-
-
-
+        with st.expander("👩‍🍳 Preparation Impact", expanded=False):
+            st.info(f"##### 👩‍🍳 **Impact preparing the ingredient as {method}:** \n(no health info available)")
 
 #------ 6 INICIALIZAR APLICACIÓN STREAMLIT ------
 
@@ -500,6 +491,7 @@ with sidebar:
         st.session_state.search_query = ""
 
     st.write(f"Currently searching: **{st.session_state.search_mode.capitalize()}**")
+    
     st.text_input(
         "Enter your search:",
         key="search_input",
@@ -528,18 +520,21 @@ with main:
     query = st.session_state.search_query.lower()
     if query:
         with st.spinner(f"🔎 Did you know? {random.choice(facts)}"):
+            MAX_RETRIES = 3
             if st.session_state.search_mode == "recipes":
                 chain = prompt_ingredients | llm
-                respuesta = chain.invoke({"topic": query})
-                try:
-                    data = json.loads(respuesta)
-                except json.JSONDecodeError:
-                    st.error("Could not parse recipe data. Try again.")
-                    st.stop()
+                for attempt in range(MAX_RETRIES):
+                    respuesta = chain.invoke({"topic": query})
+                    #print(respuesta)
+                    try:
+                        data = json.loads(respuesta)
+                        break  # Si se pudo parsear, salimos del bucle
+                    except json.JSONDecodeError:
+                        if attempt == MAX_RETRIES - 1:
+                            st.error("Could not parse recipe data. Try again.")
+                            st.stop()
 
                 st.markdown(f"## 🍲 Recipe: {query}")
-                show_preparation(data["preparation"])
-
                 st.markdown("### 🍅 Ingredients")
                 input_ingredients = [i["name"] for i in data["ingredients"]]
                 amounts = [i["amount"] for i in data["ingredients"]]
@@ -549,7 +544,7 @@ with main:
                     ingredient = ing["name"]
                     amount = ing["amount"]
                     preparation= ing["preparation"]
-                    tags = get_tags(results[i]["food_id"])
+                    tags = get_tags(results[i]["food_id"], preparation)
 
                     st.markdown(f"- <span style='color:#000; font-weight:bold'>{ingredient}</span>: {amount} {tags}", unsafe_allow_html=True)
 

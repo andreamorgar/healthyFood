@@ -28,12 +28,6 @@ processed = []
 for i, entry in enumerate(filtered_entries, start=1):
     print(f"{i}/{total}", end="\r")
 
-    # Corregimos nombres
-    if not entry.get("orig_food_common_name"):
-        food_id = entry.get("food_id")
-        if food_id in id_to_food_name:
-            entry["orig_food_common_name"] = id_to_food_name[food_id]
-
     # Corregimos constituyente
     source_type = entry.get("source_type")
     source_id = entry.get("source_id")
