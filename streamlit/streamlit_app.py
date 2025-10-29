@@ -17,7 +17,7 @@ from sentence_transformers.util import cos_sim
 
 # LLM de Ollama
 llm = OllamaLLM(model="llama3",
-                    options={"temperature": 0.7})
+                    options={"temperature": 0.6})
 
 # Datos de la base de datos de  Neo4j
 server = "neo4j://127.0.0.1:7687"
@@ -40,19 +40,18 @@ def run_query(query):
 prompt_ingredients = PromptTemplate(
     input_variables=["topic"],
     template = """
-    Generate a recipe with the provided name, then extract the global preparation method of the recipe, and for each ingredient 
-include its own preparation method.
+    Generate a recipe with the provided name, then extract each ingredient and its final preparation method.
 
 Rules:
 - Each ingredient must have its own preparation. 
-- If the preparation method is not explicitly stated, infer the most likely one. 
-- Do NOT default to "raw" unless the ingredient is clearly uncooked (e.g., salad vegetables). 
-- Remove all plural endings such as 's', 'es', or irregular forms like 'potatoes' → 'potato', 'tomatoes' → 'tomato', 'leaves' → 'leaf', etc.
+- If the preparation method is not explicitly stated, infer the most likely one, preferibly from the list:  'steamed', 'fried', 'raw', 'boiled', 'roasted', 'pan-fried, 'stewed', 'sautéed', 'cooked'. 
+- The ingredients have to be in singular, like 'potatoes' → 'potato', 'tomatoes' → 'tomato', 'leaves' → 'leaf', etc.
 
 Return the result strictly as a JSON object with no explanations, no preamble, and no extra text. 
 The JSON object must have this exact structure:
 
 {{
+  "recipe_name" : "<name of the recipe introduced>",
   "instructions":[
     {{
         "text": "<each one of the steps of the recipe>"
@@ -491,14 +490,26 @@ with sidebar:
         st.session_state.search_query = ""
 
     st.write(f"Currently searching: **{st.session_state.search_mode.capitalize()}**")
-    
-    st.text_input(
-        "Enter your search:",
-        key="search_input",
-        on_change=update_search,
-        placeholder=st.session_state.search_placeholder,
-        width=300
-    )
+    if st.session_state.search_mode == "ingredients":
+        st.text_input(
+            "Enter your search:",
+            key="search_input",
+            on_change=update_search,
+            placeholder=st.session_state.search_placeholder,
+            width=300
+        )
+
+        st.session_state.include_raw = st.checkbox("🔍 Search only raw ingredients", value=True)
+    else:
+        st.text_area(
+            "Enter your search:",
+            key="search_input",
+            on_change=update_search,
+            placeholder=st.session_state.search_placeholder,
+            height=150,
+            width=300
+        )
+
     st.markdown("#### ℹ️ About this app")
     st.markdown(
         """
@@ -525,7 +536,7 @@ with main:
                 chain = prompt_ingredients | llm
                 for attempt in range(MAX_RETRIES):
                     respuesta = chain.invoke({"topic": query})
-                    #print(respuesta)
+                    print(respuesta)
                     try:
                         data = json.loads(respuesta)
                         break  # Si se pudo parsear, salimos del bucle
@@ -534,7 +545,8 @@ with main:
                             st.error("Could not parse recipe data. Try again.")
                             st.stop()
 
-                st.markdown(f"## 🍲 Recipe: {query}")
+                recipe_title = data.get("recipe_name", query).strip().capitalize()
+                st.markdown(f"## 🍲 Recipe: {recipe_title}")
                 st.markdown("### 🍅 Ingredients")
                 input_ingredients = [i["name"] for i in data["ingredients"]]
                 amounts = [i["amount"] for i in data["ingredients"]]
@@ -550,13 +562,26 @@ with main:
 
                     # Mostrar impactos de salud/nutrición
                     with st.expander(f"Most similar ingredient found: {results[i]['food_name']}"):
-                        show_preparation(preparation, "ingredient")  # ✅ aquí usamos el método específico del ingrediente
+                        show_preparation(preparation, "ingredient")  # quí usamos el método específico del ingrediente
                         show_health_impact(results[i]["food_id"])
                         show_healthy_aging(results[i]["food_id"])
                         show_nutrient_data(results[i]["id"])
 
+                # Mostrar instrucciones de la receta
+                st.markdown("### 👨‍🍳 Instructions")
+
+                if "instructions" in data and data["instructions"]:
+                    for step in data["instructions"]:
+                        st.markdown(f"- <span style='color:#000; font-weight:bold'>{step['text']}</span>", unsafe_allow_html=True)
+                else:
+                    st.info("No instructions found for this recipe.")
+
+
 
             elif st.session_state.search_mode == "ingredients":
+                if st.session_state.get("include_raw", False):
+                    query = query + " raw"
+
                 results = find_best_matches([query], df, db_embeddings, model)
                 food_name = results[0]["food_name"]
                 tags = get_tags(results[0]["food_id"])
