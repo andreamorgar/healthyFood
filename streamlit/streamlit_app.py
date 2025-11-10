@@ -22,7 +22,7 @@ llm = OllamaLLM(model="llama3",
 # Datos de la base de datos de  Neo4j
 server = "neo4j://127.0.0.1:7687"
 username = "neo4j"
-password = "TFGAmadeo"
+password = "" #Contraseña
 
 # Inicializa el cliente de Neo4j
 try:
@@ -46,6 +46,7 @@ Rules:
 - Each ingredient must have its own preparation. 
 - If the preparation method is not explicitly stated, infer the most likely one, preferibly from the list:  'steamed', 'fried', 'raw', 'boiled', 'roasted', 'pan-fried, 'stewed', 'sautéed', 'cooked'. 
 - The ingredients have to be in singular, like 'potatoes' → 'potato', 'tomatoes' → 'tomato', 'leaves' → 'leaf', etc.
+- Never leave a field empty of the JSON empty.
 
 Return the result strictly as a JSON object with no explanations, no preamble, and no extra text. 
 The JSON object must have this exact structure:
