@@ -22,7 +22,7 @@ llm = OllamaLLM(model="llama3",
 # Datos de la base de datos de  Neo4j
 server = "neo4j://127.0.0.1:7687"
 username = "neo4j"
-password = "" #Contraseña
+password = "TFGAmadeo" #Contraseña
 
 # Inicializa el cliente de Neo4j
 try:
