@@ -1,0 +1,56 @@
+FOOD TABLE
+
+1.
+- FooDB_grupo_id.py -> Create group ID -> FooDB_Grupos_ID
+
+2.
+- Food_Simplificada.py -> Add ID only to the relevant Food variables -> Food_Simplificada
+
+
+PHYSIOLOGY TABLE
+
+- Updated in the same way as Food_Simplificada, adding group ID data -> FAALD_FooDB_Id
+
+
+FOOD_DISEASE_RELATION_DATASET TABLE
+
+- Manually: sources showing imprecise information are added, and non-important/non-food-related objects are removed.
+- Then, non-relevant fields are deleted, and "is_cause" is merged with "is_Treat" to obtain "suitable for disease".
+- Food ID is added -> FDR_FooDB_Id
+
+
+ALIMENTO_ENFERMEDAD_COMPLETA TABLE
+
+- Both tables are merged and group ID is added -> Alimento_Enfermedad_Completa
+
+
+FOODB TABLE
+
+3.
+- FooDB_Pivotado.py -> There are errors and missing data in FooDB; they are filled using Food, Compounds, and Nutrients.
+- Then, only constituents with sources "USDA" and "DTU" are kept, returning relevant fields.
+- The table is pivoted so that all compounds are contained within the object corresponding to each food -> FooDB_Pivotado
+
+4.
+- FooDB_Final.py -> Add group ID to the final table -> FooDB_Alimento_Constituyentes
+
+
+COOKING_METHODS TABLE
+
+- No changes, same as originally created manually
+
+
+HEALTHY AGING TABLE
+
+5.
+- ES_Rango.py -> Obtain max and min values for each healthy aging "aspect", and divide the range into 5 equal parts (0 = bad, 4 = good).
+- Assign each value to its corresponding range -> Es_Rango and ES_min_max
+
+- Create ES_FooDB:
+  - Manually indicate which group/foods each object from the original Healthy Aging table belongs to
+
+6.
+- ES_Completa.py -> Merge ES_Rango with ES_FooDB -> Es_Alterada
+
+7.
+- ES_Final.py -> Separate food/group into different documents to simplify queries in Neo4j -> ES_Final
