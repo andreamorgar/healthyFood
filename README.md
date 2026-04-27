@@ -1,18 +1,18 @@
-# Aplicación interactiva sobre nutrición saludable
-Este repositorio contendrá el código utilizado para la aplicación interactiva creada para el Trabajo Final de Grado ***"Extracción y representación de conocimiento sobre nutrición saludable con Inteligencia Artificial"**
+# Interactive Application on Healthy Nutrition
+This repository contains the code used for the manuscript **FoodMedKG: Integrating Biomedical Knowledgeand Culinary Data for Health-Aware Decision Support**
 
-# Descripción del proyecto
+# Project Description
 
-Este TFG trata sobre la integración de diversas tecnologías, en concreto inteligencia artificial, bases de datos NoSQL y bases de datos basadas en grafos, en el ámbito de la nutrición y salud. Para demostrar las posibilidades que puede aportar esta integración, se ha decidido crear una aplicación interactiva, a la cual se le pueden entregar recetas escritas con lenguaje natural, y mediante un modelo de lenguaje se obtienen los ingredientes y datos más relevantes de la receta, los cuales se utilizarán para realizar las consultas al grafo de datos.
+This Final Degree Project focuses on the integration of various technologies — specifically artificial intelligence, NoSQL databases, and graph databases — in the field of nutrition and health. To demonstrate the possibilities this integration can offer, an interactive application has been developed. Users can submit recipes written in natural language, and a language model extracts the most relevant ingredients and data from the recipe, which are then used to query the data graph.
 
-Esta aplicación está pensada tanto para usuarios corrientes sin experiencia en el ámbito de la nutrición como para investigadores y expertos, gracias a que la información que aporta está redactada de manera sencilla y clara, con la opción de acceder a las fuentes de las que se obtuvo para mayor detalle.
+This application is designed for both everyday users with no background in nutrition and for researchers and experts, as the information it provides is written in a simple and clear manner, with the option to access the original sources for further detail.
 
-La información que aporta trata sobre la composición de los alimentos, el efecto de los alimentos en diversas patologías, el efecto de los alimentos en el envejecimiento humano y cómo el método de cocinado puede afectar tanto al alimento como a la salud humana.
+The information covers food composition, the effect of foods on various pathologies, the effect of foods on human aging, and how cooking methods can affect both the food and human health.
 
-Esta información se mostrará de manera clara y concisa mediante etiquetas, pero se tiene la opción de comprobarla de manera más detallada en los desplegables de cada alimento, e incluso de manera más detallada entrando al enlace de la fuente de las que se obtuvieron los datos.
+This information is displayed clearly and concisely through labels, with the option to explore it in more detail via expandable sections for each food item, and even further by following the link to the original data source.
 
-# Requisitos
-Para el correcto funcionamiento de la aplicación, es necesario instalar las siguientes dependencias:
+# Requirements
+To run the application correctly, the following dependencies must be installed:
 
 * streamlit
 * pandas
@@ -23,19 +23,19 @@ Para el correcto funcionamiento de la aplicación, es necesario instalar las sig
 * langchain
 * langchain-ollama
 
-Estas se pueden instalar ejecutando
+These can be installed by running:
 ```bash
 pip install -r requirements.txt
 ```
 
-# Uso
-La aplicación necesita una base de datos de Neo4j a la que conectarse para realizar las consultas, y un modelo de lenguaje de Ollama para poder manejar el lenguaje natural.
+# Usage
+The application requires a Neo4j database to connect to for queries, and an Ollama language model to handle natural language input.
 
-Neo4j se puede conseguir e instalar siguiendo la guía que aparece en https://neo4j.com/ .
+Neo4j can be obtained and installed by following the guide at https://neo4j.com/ .
 
-Ollama se puede conseguir e instalar siguiendo la guía que aparece en https://ollama.com/
+Ollama can be obtained and installed by following the guide at https://ollama.com/
 
-Una vez tengamos la base de datos de grafos y el modelo de lenguaje iniciados, se puede ejecutar el código utilizando
+Once the graph database and the language model are running, the application can be launched with:
 
 
 ```bash
@@ -43,39 +43,35 @@ cd app
 streamlit run .\streamlit_app.py
 ```
 
-# Estructura del repositorio
+# Repository Structure
 
 
 ```
 Healthy-Food-App
     ├── app/
     │     ├── .streamlit/
-    │     │           └── config.toml       # Archivo de configuración para Streamlit, contiene tema y diseño de la aplicación.
+    │     │           └── config.toml       # Streamlit configuration file, contains the application theme and layout.
     │     │
-    │     ├── facts.txt                     # Lista de datos curiosos que se muestran aleatoriamente mientras se realizan consultas.
-    │     ├── requirements.txt              # Lista de requisitos para el funcionamiento de la aplicación
-    │     └── streamlit_app.py              # Código principal de la aplicación de Streamlit
+    │     ├── facts.txt                     # List of fun facts displayed randomly while queries are being processed.
+    │     ├── requirements.txt              # List of dependencies required to run the application
+    │     └── streamlit_app.py              # Main Streamlit application code
     │
-    ├── .gitignore                          # Exclusiones del frontend
-    ├── README.md                           # Instrucciones del frontend
-    └── LICENSE                             # Licencia de Creative Commons
+    ├── .gitignore                          # Frontend exclusions
+    ├── README.md                           # Frontend instructions
+    └── LICENSE                             # Creative Commons License
 ```
 
-# Licencia
+# License
 
-Este proyecto ha sido desarrollado con fines académicos, en el marco de un Trabajo Fin de Grado.
+This project was developed for academic purposes, as part of a Final Degree Project.
 
-Se distribuye bajo la licencia  
-**Creative Commons Atribución – No Comercial – Compartir Igual 4.0 Internacional (CC BY-NC-SA 4.0)**.  
-![Licencia CC BY-NC-SA](https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.png)
+It is distributed under the  
+**Creative Commons Attribution – NonCommercial – ShareAlike 4.0 International (CC BY-NC-SA 4.0)** license.  
+![CC BY-NC-SA License](https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.png)
 
-Esto significa que puede ser compartido y adaptado siempre que se cite correctamente al autor, no se utilice con fines comerciales y cualquier obra derivada se publique bajo la misma licencia.
+This means it may be shared and adapted as long as the author is properly credited, it is not used for commercial purposes, and any derivative works are published under the same license.
 
-🔗 Más información sobre los términos de esta licencia:  
-[https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es)
+🔗 More information about the terms of this license:  
+[https://creativecommons.org/licenses/by-nc-sa/4.0/](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-Para consultas o posibles colaboraciones, puedes contactar con el autor.
-
-Autor: Amadeo Martínez Sánchez 
-Universidad de Granada – Grado en Ingeniería Informática  
-Correo: amadeoms@correo.ugr.es
+For inquiries or potential collaborations, feel free to contact the authors
