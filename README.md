@@ -1,5 +1,5 @@
 # Interactive Application on Healthy Nutrition
-This repository contains the code used for the manuscript **FoodMedKG: Integrating Biomedical Knowledgeand Culinary Data for Health-Aware Decision Support**
+This repository contains the code used for the manuscript **FoodMedKG: Integrating Biomedical Knowledge and Culinary Data for Health-Aware Decision Support**
 
 # Project Description
 
