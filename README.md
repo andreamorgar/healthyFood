@@ -56,8 +56,18 @@ Healthy-Food-App
     │     ├── requirements.txt              # List of dependencies required to run the application
     │     └── streamlit_app.py              # Main Streamlit application code
     │
-    ├── .gitignore                          # Frontend exclusions
-    ├── README.md                           # Frontend instructions
+    ├── data/
+    │     ├── 1 FooDB_grupo_id.py           # Assigns group IDs to FooDB food entries
+    │     ├── 2 Food_Simplificada.py        # Simplified food dataset generation
+    │     ├── 3 FooDB_Pivotado.py           # Pivots FooDB data by nutrient
+    │     ├── 4 FooDB_Final.py              # Final FooDB dataset preparation
+    │     ├── 5 ES_Rango.py                 # Computes nutrient ranges for Elasticsearch
+    │     ├── 6 ES_Completa.py              # Full Elasticsearch dataset builder
+    │     ├── 7 ES_Final.py                 # Final Elasticsearch dataset preparation
+    │     └── data_preparation.txt          # Notes on data preparation steps
+    │
+    ├── .gitignore                          # Git exclusions
+    ├── README.md                           # Project documentation
     └── LICENSE                             # Creative Commons License
 ```
 
