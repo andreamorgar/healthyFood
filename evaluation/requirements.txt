@@ -1,0 +1,7 @@
+pandas
+sentence-transformers
+numpy
+neo4j
+langchain
+langchain-ollama
+rapidfuzz

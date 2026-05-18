@@ -1,3 +1,19 @@
+# Neo4j dump files (large binary, not for version control)
+data/neo4j_dump/
+
+# Virtual environment
+healthyfood_env/
+
+# Evaluation — generated outputs (not source)
+evaluation/results/
+evaluation/figures/
+evaluation/__pycache__/
+evaluation/nohup*.log
+evaluation/results_old/
+
+# Claude memory
+.claude/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

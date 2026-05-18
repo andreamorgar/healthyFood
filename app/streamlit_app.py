@@ -5,7 +5,7 @@ from sentence_transformers.util import cos_sim
 import numpy as np
 import time
 from neo4j import GraphDatabase
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
 import json
 import re
@@ -20,7 +20,7 @@ llm = OllamaLLM(model="llama3",
                     options={"temperature": 0.6})
 
 # Datos de la base de datos de  Neo4j
-server = "neo4j://127.0.0.1:7687"
+server = "neo4j://127.0.0.1:17687"
 username = "neo4j"
 password = "TFGAmadeo" #Contraseña
 
@@ -98,7 +98,7 @@ def load_embedding_model():
 @st.cache_data
 def load_food_list():
     food_list = run_query(
-        "MATCH (f:Composition) RETURN f.food_name AS food_name, f.composition_ID AS id, f.Food_ID AS food_id"
+        "MATCH (f:Composition) RETURN f.food_name AS food_name, f.id AS id, f.FooDB_ID AS food_id"
     )
     df = pd.DataFrame(food_list)
     df['food_name'] = df['food_name'].fillna('').astype(str)
@@ -161,22 +161,22 @@ def find_best_matches(input_ingredients, df, db_embeddings, model, score_thresho
 
 @st.cache_data
 def get_composition(id):
-    constituents = run_query(f'MATCH (c:Composition {{composition_ID: {id}}}) RETURN c.constituents')
+    constituents = run_query(f'MATCH (c:Composition {{id: {id}}}) RETURN c.constituents')
     return json.loads(constituents[0]["c.constituents"])
 
 @st.cache_data
 def get_disease(id):
     query = f'''
-        MATCH (f:Food {{Food_ID:{id}}})-[r:affects]->(d:Disease)
-        RETURN d.disease AS Disease, 
-               r.`suitable for disease` AS Suitable, 
-               r.disease_link AS link
+        MATCH (f:Food {{FooDB_id:{id}}})-[r:Affects]->(d:Disease)
+        RETURN d.Disease AS Disease,
+               r.`Suitable for Disease` AS Suitable,
+               r.Link AS link
     '''
     return run_query(query)
 
 def get_healthy_aging(food_id):
     query = f'''
-        MATCH (h:Aging {{food_ID:{food_id}}})
+        MATCH (h:`Envejecimiento Saludable` {{FooDB_ID:{food_id}}})
         RETURN h
     '''
     result = run_query(query)
@@ -184,7 +184,7 @@ def get_healthy_aging(food_id):
 
 def get_preparation(method):
     preparation = run_query(
-        f'MATCH (m:Preparation {{cooking_method: "{method}"}}) RETURN m.health_impact AS impact, m.sentence AS sentence, m.preparation_link AS link'
+        f'MATCH (m:Cooking_Methods {{Cooking_Method: "{method}"}}) RETURN m.Health_Impact AS impact, m.Sentence AS sentence, m.link AS link'
     )
     return preparation[0] if preparation else None
 
@@ -221,7 +221,7 @@ def get_tags(food_id, preparation=None):
         levels = []
         for result in results:
             he = result.get("h", {})
-            level = he.get("healthy_aging_level")
+            level = he.get("Healthy Aging_level")
             if level is not None:
                 levels.append(level)
 
@@ -394,19 +394,19 @@ def show_healthy_aging(food_id):
         for result in results:
             he = result.get("h", {})
 
-            group = he.get("aging_group", "Unknown group")
+            group = he.get("Name", "Unknown group")
             st.markdown(
                 f"##### The group **{group}** affects how a person ages in this way:"
             )
 
             # Metrics to display
             metrics = {
-                "Healthy Aging": he.get("healthy_aging_level"),
-                "Cognitive Function": he.get("intact_cognitive_function_level"),
-                "Physical Function": he.get("intact_physical_function_level"),
-                "Mental Health": he.get("intact_mental_health_level"),
-                "Chronic Diseases": he.get("free_from_chronic_disease_level"),
-                "Survived 70+ Years": he.get("survived_for_70_years_of_age_level"),
+                "Healthy Aging": he.get("Healthy Aging_level"),
+                "Cognitive Function": he.get("Intact Cognitive Function_level"),
+                "Physical Function": he.get("Intact physical function_level"),
+                "Mental Health": he.get("Intact mental health_level"),
+                "Chronic Diseases": he.get("Free From Chronic Disease_level"),
+                "Survived 70+ Years": he.get("Survived For 70 Years Of Age_level"),
             }
 
             cols = st.columns(len(metrics))

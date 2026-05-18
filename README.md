@@ -1,87 +1,190 @@
 # FoodMedKG
-This repository contains the code used for the manuscript **FoodMedKG: Integrating Biomedical Knowledge and Culinary Data for Health-Aware Decision Support**
 
-# Project Description
+This repository contains the code used for the manuscript  
+**FoodMedKG: Integrating Biomedical Knowledge and Culinary Data for Health-Aware Decision Support**
 
-This Final Degree Project focuses on the integration of various technologies — specifically artificial intelligence, NoSQL databases, and graph databases — in the field of nutrition and health. To demonstrate the possibilities this integration can offer, an interactive application has been developed. Users can submit recipes written in natural language, and a language model extracts the most relevant ingredients and data from the recipe, which are then used to query the data graph.
+---
 
-This application is designed for both everyday users with no background in nutrition and for researchers and experts, as the information it provides is written in a simple and clear manner, with the option to access the original sources for further detail.
+## Project Description
 
-The information covers food composition, the effect of foods on various pathologies, the effect of foods on human aging, and how cooking methods can affect both the food and human health.
+FoodMedKG integrates artificial intelligence, NoSQL databases, and graph databases in the field of nutrition and health. The system has two main components:
 
-This information is displayed clearly and concisely through labels, with the option to explore it in more detail via expandable sections for each food item, and even further by following the link to the original data source.
+1. **Interactive Application** — Users submit recipes in natural language; a language model extracts ingredients and preparation methods, which are used to query a biomedical knowledge graph. Results cover food composition, the effect of foods on pathologies and aging, and how cooking methods affect nutritional value.
 
-# Requirements
-To run the application correctly, the following dependencies must be installed:
+2. **Evaluation Framework** — A benchmark suite that measures how accurately LLMs extract structured ingredient data from free-text recipes, at three levels of strictness (strict, flexible, and soft semantic matching), plus analysis of the ingredients models add beyond the ground truth.
 
-* streamlit
-* pandas
-* sentence-transformers
-* scikit-learn
-* numpy
-* neo4j
-* langchain
-* langchain-ollama
+---
 
-These can be installed by running:
-```bash
-pip install -r requirements.txt
+## Repository Structure
+
+```
+healthyFood/
+├── app/
+│   ├── .streamlit/
+│   │   └── config.toml          # Streamlit theme and layout
+│   ├── facts.txt                # Fun facts shown during query processing
+│   ├── requirements.txt         # App dependencies
+│   └── streamlit_app.py         # Main Streamlit application
+│
+├── data/
+│   ├── 1 FooDB_grupo_id.py      # Assigns group IDs to FooDB food entries
+│   ├── 2 Food_Simplificada.py   # Simplified food dataset generation
+│   ├── 3 FooDB_Pivotado.py      # Pivots FooDB data by nutrient
+│   ├── 4 FooDB_Final.py         # Final FooDB dataset preparation
+│   ├── 5 ES_Rango.py            # Computes nutrient ranges for Elasticsearch
+│   ├── 6 ES_Completa.py         # Full Elasticsearch dataset builder
+│   ├── 7 ES_Final.py            # Final Elasticsearch dataset preparation
+│   └── data_preparation.txt     # Notes on data preparation steps
+│
+├── evaluation/
+│   ├── benchmark.json           # Batch 1 — 15 recipes with ground-truth ingredients & variants
+│   ├── benchmark_batch2.json    # Batch 2 — 35 recipes with ground-truth ingredients & variants
+│   ├── evaluate.py              # Main evaluation script (Part A: LLM extraction)
+│   ├── compute_extras.py        # Patches CSVs with extra_ingredients column
+│   ├── visualize.py             # Generates all paper figures (PNG + PDF)
+│   ├── run_all_models.sh        # Runs all models on both batches end-to-end
+│   └── requirements.txt         # Evaluation dependencies
+│
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
-# Usage
-The application requires a Neo4j database to connect to for queries, and an Ollama language model to handle natural language input.
+---
 
-Neo4j can be obtained and installed by following the guide at https://neo4j.com/ .
+## Requirements
 
-Ollama can be obtained and installed by following the guide at https://ollama.com/
+### Application
 
-Once the graph database and the language model are running, the application can be launched with:
+```bash
+pip install -r app/requirements.txt
+```
 
+Dependencies: `streamlit`, `pandas`, `sentence-transformers`, `scikit-learn`, `numpy`, `neo4j`, `langchain`, `langchain-ollama`
+
+### Evaluation
+
+```bash
+pip install -r evaluation/requirements.txt
+```
+
+Dependencies: `langchain`, `langchain-ollama`, `sentence-transformers`, `pandas`, `matplotlib`, `scipy`, `numpy`, `wordcloud`
+
+---
+
+## Running the Application
+
+The application requires a running **Neo4j** database and a running **Ollama** model.
+
+- Neo4j: https://neo4j.com/
+- Ollama: https://ollama.com/
 
 ```bash
 cd app
-streamlit run .\streamlit_app.py
+streamlit run streamlit_app.py
 ```
 
-# Repository Structure
+---
 
+## Running the Evaluation
 
+### Overview
+
+The evaluation framework (Part A) benchmarks LLMs on structured ingredient extraction from recipe names. It computes:
+
+| Metric | Description |
+|---|---|
+| **F1 Strict** | Token-overlap F1 against the canonical ground truth |
+| **F1 Flexible** | Best F1 across the ground truth + 2 recipe variants |
+| **F1 Soft** | Cosine similarity ≥ threshold (default 0.75) using sentence embeddings |
+| **Prep Valid Rate** | Fraction of ingredients with a valid preparation method |
+| **JSON Valid Rate** | Fraction of runs where the model returned parseable JSON |
+| **Extra Ingredients** | Ingredients extracted by the model that are not in any ground truth variant |
+
+### Benchmarks
+
+| File | Recipes | Description |
+|---|---|---|
+| `benchmark.json` | 15 | Complex, multi-ingredient dishes (Batch 1) |
+| `benchmark_batch2.json` | 35 | Simple everyday recipes (Batch 2) |
+
+Each recipe has a canonical `expected_ingredients` list plus two `ingredient_variants` to allow flexible matching.
+
+### Full run — all models, both batches
+
+```bash
+cd evaluation
+nohup bash run_all_models.sh > nohup_all.log 2>&1 &
 ```
-Healthy-Food-App
-    ├── app/
-    │     ├── .streamlit/
-    │     │           └── config.toml       # Streamlit configuration file, contains the application theme and layout.
-    │     │
-    │     ├── facts.txt                     # List of fun facts displayed randomly while queries are being processed.
-    │     ├── requirements.txt              # List of dependencies required to run the application
-    │     └── streamlit_app.py              # Main Streamlit application code
-    │
-    ├── data/
-    │     ├── 1 FooDB_grupo_id.py           # Assigns group IDs to FooDB food entries
-    │     ├── 2 Food_Simplificada.py        # Simplified food dataset generation
-    │     ├── 3 FooDB_Pivotado.py           # Pivots FooDB data by nutrient
-    │     ├── 4 FooDB_Final.py              # Final FooDB dataset preparation
-    │     ├── 5 ES_Rango.py                 # Computes nutrient ranges for Elasticsearch
-    │     ├── 6 ES_Completa.py              # Full Elasticsearch dataset builder
-    │     ├── 7 ES_Final.py                 # Final Elasticsearch dataset preparation
-    │     └── data_preparation.txt          # Notes on data preparation steps
-    │
-    ├── .gitignore                          # Git exclusions
-    ├── README.md                           # Project documentation
-    └── LICENSE                             # Creative Commons License
+
+Quick test (1 recipe per model per batch):
+
+```bash
+bash run_all_models.sh --test
 ```
 
-# License
+Models evaluated (pulled automatically via Ollama if not installed):
 
-This project was developed for academic purposes, as part of a Final Degree Project.
+- `llama3.1:8b-instruct-q8_0`
+- `qwen3:8b-q8_0`
+- `gemma2:9b-instruct-q8_0`
+- `mistral:7b-instruct-q8_0`
+- `deepseek-r1:8b-q8_0`
+- `olmo2:7b-instruct-q8_0`
+- `cogito:8b-v0.1-llama3`
+- `dolphin-llama3:8b-v2.9-q8_0`
+
+Results are saved to `evaluation/results/batch1/` and `evaluation/results/batch2/`.
+
+### Add extra-ingredient analysis to existing results
+
+If you already have Part A CSVs and want to add the `extra_ingredients` column:
+
+```bash
+cd evaluation
+python compute_extras.py --results results/batch1 --benchmark benchmark.json
+python compute_extras.py --results results/batch2 --benchmark benchmark_batch2.json
+```
+
+### Generate figures
+
+```bash
+cd evaluation
+python visualize.py
+```
+
+Reads from `results/batch1/` and `results/batch2/` by default. Every figure is saved as both PNG and PDF in `figures/`.
+
+| Figure | Description |
+|---|---|
+| `a1` | Metric distributions (KDE) across all models |
+| `a2_*` | Extraction scatter per model (extracted vs expected count) |
+| `a3` | Grouped bar — model comparison across all metrics |
+| `a4` | F1 box plot per model |
+| `a5` | F1 violin — Strict / Flexible / Soft comparison |
+| `a6` | Word clouds of extra ingredients per model |
+| `a7` | Top extra ingredients bar chart (coloured by model agreement) |
+| `a8` | Model agreement analysis — distribution + ranked pill grid |
+
+Custom paths:
+
+```bash
+python visualize.py --results results/batch1 results/batch2 --out figures/ --format pdf
+```
+
+---
+
+## License
+
+This project was developed for academic purposes as part of a Final Degree Project.
 
 It is distributed under the  
-**Creative Commons Attribution – NonCommercial – ShareAlike 4.0 International (CC BY-NC-SA 4.0)** license.  
+**Creative Commons Attribution – NonCommercial – ShareAlike 4.0 International (CC BY-NC-SA 4.0)** license.
+
 ![CC BY-NC-SA License](https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.png)
 
 This means it may be shared and adapted as long as the author is properly credited, it is not used for commercial purposes, and any derivative works are published under the same license.
 
-🔗 More information about the terms of this license:  
-[https://creativecommons.org/licenses/by-nc-sa/4.0/](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+More information: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
-For inquiries or potential collaborations, feel free to contact the authors
+For inquiries or potential collaborations, feel free to contact the authors.
