@@ -203,9 +203,122 @@ This analysis suggests a two-tier decomposition of extra ingredients:
 
 ---
 
-## 4. Summary and Key Findings
+## 4. Part B — Ingredient Matching Accuracy
 
-### 4.1 Ranking
+### 4.1 Overview
+
+Part B evaluates the system's ability to retrieve the correct food entry from the Neo4j knowledge graph given an ingredient name as extracted by an LLM. This directly tests the KG retrieval step that sits between Part A (LLM extraction) and Part C (disease association).
+
+**Requires:** a running Neo4j instance (`--with-db` flag).  
+**Run command:**
+```bash
+cd evaluation
+python evaluate.py --with-db --skip-llm --save-csv results/batch1/
+```
+
+### 4.2 Matching Benchmark
+
+The benchmark contains **182 queries** across **15 food groups**, each representing a different surface form an LLM might use for the same food:
+
+| Food group | Queries |
+|---|---|
+| Vegetables | 25 |
+| Animal foods | 16 |
+| Aquatic foods | 16 |
+| Cereals and cereal products | 16 |
+| Fruits | 16 |
+| Herbs and Spices | 16 |
+| Milk and milk products | 16 |
+| Nuts | 12 |
+| Pulses | 12 |
+| Beverages | 9 |
+| Baking goods | 6 |
+| Cocoa and cocoa products | 6 |
+| Soy | 6 |
+| Teas | 6 |
+| Eggs | 4 |
+| **Total** | **182** |
+
+Each query tests a specific surface form. For example, the food "broccoli" is tested as: `broccoli`, `broccoli florets`, `fresh broccoli`, `broccoli head`, `broccolis` — covering canonical names, plurals, adjective-prefixed forms, and preparation-prefixed forms. This reflects the variability of LLM output in real extraction scenarios.
+
+### 4.3 Retrieval Method
+
+For each query, the system:
+
+1. Encodes the query with **SentenceTransformer** (`all-MiniLM-L6-v2`)
+2. Computes a **combined score** against every food entry in the KG:
+
+   ```
+   final_score = 0.7 × cosine_similarity + 0.3 × JaroWinkler_similarity
+   ```
+
+3. Filters out **processed food entries** (e.g. "boiled broccoli", "roasted almond") to match the application's behaviour of querying raw ingredients
+4. Returns the **top-k candidates** (default k=3)
+
+A result is considered correct if any key word from the ground-truth `key_words` list appears in the matched food name.
+
+### 4.4 Metrics
+
+| Metric | Definition |
+|---|---|
+| **Top-1 Accuracy** | Fraction of queries where the first result is correct |
+| **Top-3 Accuracy** | Fraction of queries where any of the top-3 results is correct |
+| **MRR** | Mean Reciprocal Rank — 1/rank of the first correct result, averaged over all queries |
+
+> **Note:** Part B results require a live Neo4j connection and are not stored in the repository. To regenerate: `python evaluate.py --with-db --skip-llm --save-csv results/batch1/`
+
+> **Figure reference:** Figure b1 (score distribution KDE: correct vs incorrect), b2 (violin of scores per food group), b3 (score bucket histogram), b4 (grouped bar: Top-1 / Top-3 / MRR per group), b5 (lollipop chart of accuracy per food group sorted by Top-1).
+
+---
+
+## 5. Part C — KG Disease Association Correctness
+
+### 5.1 Overview
+
+Part C validates that the knowledge graph correctly encodes food–disease relationships. It checks a curated set of ground-truth triples of the form *(food, disease, suitable)* against the actual `Affects` edges in the KG.
+
+**Requires:** a running Neo4j instance (`--with-db` flag).
+
+### 5.2 Ground Truth
+
+**15 triples** covering 8 distinct foods and 12 diseases:
+
+| Food | Disease | Suitable | Rationale |
+|---|---|---|---|
+| broccoli | cancer | Yes | Anti-cancer glucosinolates |
+| broccoli | breast cancer | Yes | Sulforaphane activity |
+| broccoli | colorectal cancer | Yes | Dietary fibre and phytochemicals |
+| spinach | cancer | Yes | Antioxidant and folate content |
+| spinach | anemia | Yes | Iron and folate source |
+| almond | coronary heart disease | Yes | Monounsaturated fats and vitamin E |
+| almond | high cholesterol | Yes | LDL-lowering effect |
+| sugar | caries | No | Direct cariogenic effect |
+| sugar | alzheimer's disease | No | Metabolic inflammation link |
+| added salt | high blood pressure | No | Sodium–hypertension relationship |
+| added salt | hypertension | No | Direct sodium effect |
+| albacore tuna | cancer | Yes | Omega-3 anti-inflammatory effects |
+| albacore tuna | ischemic heart disease | Yes | Omega-3 cardioprotective effects |
+| apple juice | cardiovascular diseases | Yes | Polyphenol content |
+| apple juice | type 2 diabetes | Yes | Quercetin insulin sensitivity |
+
+The set intentionally includes both suitable (11) and not-suitable (4) triples, and covers well-established relationships with clear biochemical rationale, making it a high-confidence gold standard.
+
+### 5.3 Metrics
+
+| Metric | Definition |
+|---|---|
+| **Found rate** | Fraction of triples where the food–disease edge exists in the KG |
+| **Suitability correct** | Fraction of triples where both the edge exists and the suitability label matches |
+
+> **Note:** Part C results require a live Neo4j connection. To regenerate: `python evaluate.py --with-db --skip-llm --save-csv results/batch1/`
+
+> **Figure reference:** Figure c1 — two panels: (left) per-food bar of found rate vs correctness rate; (right) pie chart of correct / wrong suitability / not found.
+
+---
+
+## 6. Summary and Key Findings
+
+### 6.1 Ranking
 
 Based on F1 Strict across all 50 recipes:
 
@@ -217,7 +330,7 @@ Based on F1 Strict across all 50 recipes:
 | 4 | Dolphin-LLaMA3 8B | 0.491 | 0.536 | 0.668 | 1.000 | 0.474 |
 | 5 | Mistral 7B | 0.440 | 0.483 | 0.627 | 0.920 | 0.575 |
 
-### 4.2 Effect of Matching Flexibility
+### 6.2 Effect of Matching Flexibility
 
 Across all models, relaxing from Strict to Flexible matching improves F1 by an average of **+0.055** (range: +0.040–+0.058). Further relaxing to Soft matching adds another **+0.063** on average. The consistent improvement across all models shows that recipe variants and lexical variation are genuine sources of underestimation in strict evaluation.
 
@@ -227,20 +340,20 @@ Across all models, relaxing from Strict to Flexible matching improves F1 by an a
 | Largest gain | Qwen3: +0.058 | Mistral: +0.144 |
 | Smallest gain | Dolphin: +0.045 | Qwen3: -0.003 |
 
-### 4.3 Structural vs. Semantic Quality
+### 6.3 Structural vs. Semantic Quality
 
 A notable split emerges between structural quality (JSON validity, field completeness) and semantic quality (ingredient accuracy, preparation validity):
 
 - Models with **perfect structural compliance** (LLaMA 3.1, Qwen3, Dolphin) do not necessarily achieve the best F1 — Dolphin produces flawless JSON but achieves lower F1 and poor preparation validity.
 - **Qwen3** is the only model that excels on both dimensions simultaneously.
 
-### 4.4 Extra Ingredients as a Quality Signal
+### 6.4 Extra Ingredients as a Quality Signal
 
 The extra ingredient analysis reveals that all models systematically add ingredients beyond the benchmark ground truth. The agreement-based decomposition shows this is not random noise: 65.1% of extras are model-specific (subjective), while a small core of universally agreed-upon extras (*salt*, *pepper*, *oil*) may indicate gaps in the benchmark ground truth rather than model errors. This finding motivates ground truth augmentation strategies for future benchmark iterations.
 
 ---
 
-## 5. Figures Reference
+## 7. Figures Reference
 
 | Figure | Filename | Content |
 |---|---|---|
