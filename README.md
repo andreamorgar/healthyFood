@@ -129,9 +129,6 @@ Models evaluated (pulled automatically via Ollama if not installed):
 - `qwen3:8b-q8_0`
 - `gemma2:9b-instruct-q8_0`
 - `mistral:7b-instruct-q8_0`
-- `deepseek-r1:8b-q8_0`
-- `olmo2:7b-instruct-q8_0`
-- `cogito:8b-v0.1-llama3`
 - `dolphin-llama3:8b-v2.9-q8_0`
 
 Results are saved to `evaluation/results/batch1/` and `evaluation/results/batch2/`.
