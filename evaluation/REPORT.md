@@ -69,14 +69,12 @@ The three F1 levels capture different tolerances: Strict penalises any deviation
 
 **Key observations:**
 
-- **Qwen3 8B** is the best-performing model overall, achieving the highest F1 at all three matching levels (0.725 strict / 0.783 flexible / 0.780 soft) and perfect scores on JSON validity, field completeness, and preparation validity.
-- **LLaMA 3.1 8B** is the second-best model in F1 and leads in precision (0.602), with perfect JSON validity and strong field completeness (0.975).
-- **Gemma 2 9B** and **Mistral 7B** show more variable performance, with Gemma reaching better recall but lower precision.
-- **Dolphin-LLaMA3 8B** produces perfectly valid JSON but has the lowest preparation validity (0.474), suggesting it extracts ingredients reliably but struggles with preparation categorisation.
-- The gap between F1 Strict and F1 Flexible (grand mean: +0.055) indicates that recipe variants capture valid alternative formulations not covered by the canonical ground truth.
-- The gap between F1 Flexible and F1 Soft is smaller (+0.063), suggesting that most flexible-level mismatches are genuine omissions rather than synonym confusion.
-
-> **Figure reference:** Figure a3 (grouped bar chart) and Figure a4 (F1 box plot per model) provide a full visual comparison. Figure a1 shows the metric distributions as overlapping KDE curves. Figure a5 shows the violin plot comparing F1 Strict, Flexible, and Soft per model with connected mean trajectories.
+- **Qwen3 8B** is the best-performing model overall, achieving the highest F1 at all three matching levels (0.725 strict / 0.783 flexible / 0.780 soft) and perfect scores on JSON validity, field completeness, and preparation validity. → **Figure a3** (grouped bar), **Figure a4** (F1 box plot).
+- **LLaMA 3.1 8B** is the second-best model in F1 and leads in precision (0.602), with perfect JSON validity and strong field completeness (0.975). → **Figure a3**, **Figure a1** (KDE distributions).
+- **Gemma 2 9B** and **Mistral 7B** show more variable performance, with Gemma reaching better recall but lower precision. → **Figure a1** (wider KDE spread), **Figure a2** per-model scatter.
+- **Dolphin-LLaMA3 8B** produces perfectly valid JSON but has the lowest preparation validity (0.474), suggesting it extracts ingredients reliably but struggles with preparation categorisation. → **Figure a3** (Prep Valid column), **Figure a1** (Prep Valid panel).
+- The gap between F1 Strict and F1 Flexible (grand mean: +0.055) indicates that recipe variants capture valid alternative formulations not covered by the canonical ground truth. → **Figure a5** (violin + connected means, Strict vs Flexible shift).
+- The gap between F1 Flexible and F1 Soft is smaller (+0.063), suggesting that most flexible-level mismatches are genuine omissions rather than synonym confusion. → **Figure a5** (Flexible → Soft shift per model).
 
 ### 2.2 Per-Batch Breakdown
 
