@@ -27,13 +27,13 @@ healthyFood/
 │   └── streamlit_app.py         # Main Streamlit application
 │
 ├── data/
-│   ├── 1 FooDB_grupo_id.py      # Assigns group IDs to FooDB food entries
-│   ├── 2 Food_Simplificada.py   # Simplified food dataset generation
-│   ├── 3 FooDB_Pivotado.py      # Pivots FooDB data by nutrient
-│   ├── 4 FooDB_Final.py         # Final FooDB dataset preparation
-│   ├── 5 ES_Rango.py            # Computes nutrient ranges for Elasticsearch
-│   ├── 6 ES_Completa.py         # Full Elasticsearch dataset builder
-│   ├── 7 ES_Final.py            # Final Elasticsearch dataset preparation
+│   ├── 1_FooDB_group_id.py      # Assigns group IDs to FooDB food entries
+│   ├── 2_Food_Simplified.py     # Simplified food dataset generation
+│   ├── 3_FooDB_Pivoted.py       # Pivots FooDB data by nutrient
+│   ├── 4_FooDB_Final.py         # Final FooDB dataset preparation
+│   ├── 5_ES_Range.py            # Computes nutrient ranges for Elasticsearch
+│   ├── 6_ES_Complete.py         # Full Elasticsearch dataset builder
+│   ├── 7_ES_Final.py            # Final Elasticsearch dataset preparation
 │   └── data_preparation.txt     # Notes on data preparation steps
 │
 ├── evaluation/
