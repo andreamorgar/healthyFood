@@ -1,6 +1,10 @@
 # Neo4j dump files (large binary, not for version control)
 data/neo4j_dump/
 
+# MongoDB data and loader script (local data, not for version control)
+data/mongoDB/
+data/load_neo4j.py
+
 # Virtual environment
 healthyfood_env/
 

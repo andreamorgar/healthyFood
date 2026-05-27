@@ -16,8 +16,8 @@ from sentence_transformers.util import cos_sim
 #------ 1 CARGAR E INICIALIZAR OLLAMA Y NEO4J ------
 
 # LLM de Ollama
-llm = OllamaLLM(model="llama3",
-                    options={"temperature": 0.6})
+llm = OllamaLLM(model="qwen2.5",
+                    options={"temperature": 0.0})
 
 # Datos de la base de datos de  Neo4j
 server = "neo4j://127.0.0.1:17687"

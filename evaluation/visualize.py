@@ -26,7 +26,13 @@ from scipy.stats import gaussian_kde
 # ── Global style ──────────────────────────────────────────────────────────────
 plt.rcParams.update({
     "font.family": "sans-serif",
-    "font.size": 11,
+    "font.size": 16,
+    "axes.titlesize": 18,
+    "axes.labelsize": 16,
+    "xtick.labelsize": 15,
+    "ytick.labelsize": 15,
+    "legend.fontsize": 14,
+    "figure.titlesize": 19,
     "axes.spines.top": False,
     "axes.spines.right": False,
     "axes.grid": True,
@@ -71,11 +77,11 @@ def fig_a_metric_distributions(dfs: "dict[str, pd.DataFrame]", out: Path) -> Non
     fig, axes = plt.subplots(1, n_metrics, figsize=(3.2 * n_metrics, 4), sharey=False)
     if n_metrics == 1:
         axes = [axes]
-    fig.suptitle("Part A — Metric Distributions Across Models",
-                 fontsize=13, fontweight="bold", y=1.03)
+    fig.suptitle("Metric Distributions Across Models",
+                 fontsize=18, fontweight="bold", y=1.03)
 
     for ax, (col, label) in zip(axes, metrics):
-        ax.set_title(label, fontsize=10)
+        ax.set_title(label, fontsize=15)
         ax.set_xlim(-0.05, 1.05)
         for i, (model, df) in enumerate(dfs.items()):
             if col not in df.columns:
@@ -93,7 +99,7 @@ def fig_a_metric_distributions(dfs: "dict[str, pd.DataFrame]", out: Path) -> Non
                            linestyle="--", label=short)
             ax.axvline(vals.mean(), color=color, linestyle=":",
                        linewidth=1.2, alpha=0.7)
-        ax.set_xlabel("Score", fontsize=9)
+        ax.set_xlabel("Score", fontsize=14)
         ax.set_ylabel("")
 
     handles, labels = axes[0].get_legend_handles_labels()
@@ -102,7 +108,7 @@ def fig_a_metric_distributions(dfs: "dict[str, pd.DataFrame]", out: Path) -> Non
         if l not in seen:
             seen.add(l); h2.append(h); l2.append(l)
     fig.legend(h2, l2, loc="upper center", ncol=len(model_names),
-               fontsize=9, frameon=False, bbox_to_anchor=(0.5, -0.01))
+               fontsize=14, frameon=False, bbox_to_anchor=(0.5, -0.01))
     fig.tight_layout()
     _save(fig, out)
 
@@ -169,17 +175,17 @@ def fig_a_f1_comparison(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
         ax.annotate(f"{means[-1]:.2f}",
                     xy=(xs[-1], means[-1]),
                     xytext=(6, 0), textcoords="offset points",
-                    fontsize=7.5, color=color, va="center")
+                    fontsize=11, color=color, va="center")
 
     # ── Axes & style ──────────────────────────────────────────────────────────
     ax.set_xticks(x_pos)
-    ax.set_xticklabels(x_labels, fontsize=11)
-    ax.set_ylabel("Ingredient F1", fontsize=11)
+    ax.set_xticklabels(x_labels, fontsize=16)
+    ax.set_ylabel("Ingredient F1", fontsize=16)
     ax.set_ylim(0, 1.08)
     ax.set_xlim(-0.55, n_types - 0.3)
-    ax.set_title("F1 Score under Different Matching Criteria",
-                 fontsize=13, fontweight="bold", pad=12)
-    ax.legend(fontsize=9, loc="lower right", framealpha=0.9,
+    ax.set_title("F1 Score under different matching criteria",
+                 fontsize=18, fontweight="bold", pad=12)
+    ax.legend(fontsize=14, loc="lower right", framealpha=0.9,
               edgecolor="#DDDDDD", ncol=max(1, len(models) // 3))
 
     for spine in ["top", "right"]:
@@ -206,15 +212,15 @@ def fig_a_scatter_extraction(df: pd.DataFrame, out: Path, model: str) -> None:
 
     for _, row in df.iterrows():
         ax.annotate(row["recipe"][:14], (row["n_expected"], row["avg_n_extracted"]),
-                    fontsize=6.5, alpha=0.75,
+                    fontsize=10, alpha=0.75,
                     xytext=(3, 3), textcoords="offset points")
 
     plt.colorbar(sc, ax=ax, label="F1 Score", fraction=0.04, pad=0.02)
     ax.set_xlabel("Expected ingredients (ground truth)")
     ax.set_ylabel("Extracted ingredients (LLM)")
     ax.set_title(f"Part A — Extraction Count vs Ground Truth  [{model}]",
-                 fontsize=11, fontweight="bold")
-    ax.legend(fontsize=8, frameon=False)
+                 fontsize=16, fontweight="bold")
+    ax.legend(fontsize=12, frameon=False)
     fig.tight_layout()
     _save(fig, out)
 
@@ -238,15 +244,15 @@ def fig_a_model_comparison(dfs: dict[str, pd.DataFrame], out: Path) -> None:
                         label=model, color=PALETTE[i % len(PALETTE)], alpha=0.85)
         for bar, val in zip(bars, means):
             ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.8,
-                    f"{val:.0f}", ha="center", va="bottom", fontsize=7.5)
+                    f"{val:.0f}", ha="center", va="bottom", fontsize=11)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=10)
+    ax.set_xticklabels(labels, fontsize=15)
     ax.set_ylabel("Score (%)")
     ax.set_ylim(0, 115)
     ax.axhline(100, color="gray", linestyle="--", linewidth=0.8, alpha=0.4)
-    ax.set_title("Part A — LLM Model Comparison", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=9, loc="lower right")
+    ax.set_title("Part A — LLM Model Comparison", fontsize=18, fontweight="bold")
+    ax.legend(fontsize=14, loc="lower right")
     fig.tight_layout()
     _save(fig, out)
 
@@ -265,13 +271,12 @@ def fig_a_f1_boxplot(dfs: dict[str, pd.DataFrame], out: Path) -> None:
         patch.set_alpha(0.7)
 
     ax.set_xticks(range(1, len(labels) + 1))
-    ax.set_xticklabels([l.split(":")[0] for l in labels], fontsize=10)
+    ax.set_xticklabels([l.split(":")[0] for l in labels], fontsize=15)
     ax.set_ylabel("Ingredient F1")
     ax.set_ylim(0, 1.05)
-    ax.set_title("Part A — F1 Distribution per Model", fontsize=12, fontweight="bold")
+    ax.set_title("F1 Distribution per model", fontsize=17, fontweight="bold")
     ax.axhline(np.mean([df["f1"].mean() for df in dfs.values()]),
-               color="gray", linestyle="--", linewidth=0.8, alpha=0.5, label="Grand mean")
-    ax.legend(fontsize=9, frameon=False)
+               color="gray", linestyle="--", linewidth=0.8, alpha=0.5)
     fig.tight_layout()
     _save(fig, out)
 
@@ -301,12 +306,12 @@ def fig_b_score_distribution(df: pd.DataFrame, out: Path, top_k: int) -> None:
         elif len(vals) == 1:
             ax.axvline(vals[0], color=color, linewidth=2, label=label)
 
-    ax.set_xlabel("Matching Score")
+    ax.set_xlabel("Matching score")
     ax.set_ylabel("Density")
     ax.set_xlim(0, 1.05)
-    ax.set_title("Part B — Score Distribution: Correct vs Incorrect Matches",
-                 fontsize=11, fontweight="bold")
-    ax.legend(fontsize=9, frameon=False)
+    ax.set_title("Score distribution: correct vs incorrect matches",
+                 fontsize=16, fontweight="bold")
+    ax.legend(fontsize=14, frameon=False)
     fig.tight_layout()
     _save(fig, out)
 
@@ -327,14 +332,14 @@ def fig_b_score_violin_by_group(df: pd.DataFrame, out: Path) -> None:
     parts["cmedians"].set_linewidth(2)
 
     ax.set_xticks(range(len(groups)))
-    ax.set_xticklabels(groups, rotation=38, ha="right", fontsize=9)
-    ax.set_ylabel("Matching Score")
+    ax.set_xticklabels(groups, rotation=38, ha="right", fontsize=14)
+    ax.set_ylabel("Matching score")
     ax.set_ylim(0.3, 1.05)
     ax.axhline(0.75, color="gray", linestyle="--", linewidth=0.8,
                alpha=0.5, label="Score = 0.75")
-    ax.set_title("Part B — Matching Score Spread per Food Group",
-                 fontsize=12, fontweight="bold")
-    ax.legend(fontsize=9, frameon=False)
+    ax.set_title("Part B — Matching score Spread per Food Group",
+                 fontsize=17, fontweight="bold")
+    ax.legend(fontsize=14, frameon=False)
     fig.tight_layout()
     _save(fig, out)
 
@@ -352,15 +357,15 @@ def fig_b_group_accuracy(df_groups: pd.DataFrame, out: Path, top_k: int) -> None
     ax.barh(y + h, df["mrr"]       * 100, h, color=PALETTE[2], alpha=0.85, label="MRR × 100")
 
     ax.set_yticks(y)
-    ax.set_yticklabels(df["group"], fontsize=10)
+    ax.set_yticklabels(df["group"], fontsize=15)
     ax.set_xlabel("Score (%)")
     ax.set_xlim(0, 118)
     ax.axvline(100, color="gray", linestyle="--", linewidth=0.8, alpha=0.4)
     for i, (_, row) in enumerate(df.iterrows()):
-        ax.text(102, i, f"n={int(row['n'])}", va="center", fontsize=8, color="gray")
-    ax.set_title("Part B — Ingredient Matching Accuracy by Food Group",
-                 fontsize=12, fontweight="bold")
-    ax.legend(loc="lower right", fontsize=9)
+        ax.text(102, i, f"n={int(row['n'])}", va="center", fontsize=12, color="gray")
+    ax.set_title("Ingredient matching accuracy by food group",
+                 fontsize=17, fontweight="bold")
+    ax.legend(loc="lower right", fontsize=14)
     fig.tight_layout()
     _save(fig, out)
 
@@ -370,21 +375,23 @@ def fig_b_group_lollipop(df_groups: pd.DataFrame, out: Path, top_k: int) -> None
     from matplotlib.colors import LinearSegmentedColormap
     from matplotlib.lines import Line2D
 
-    top_k_col = f"top{top_k}"
-    df = df_groups.sort_values("top1", ascending=True).reset_index(drop=True)
+    top_k_col  = f"top{top_k}"
+    sort_col   = "score_std" if "score_std" in df_groups.columns else "top1"
+    df = df_groups.sort_values(sort_col, ascending=True).reset_index(drop=True)
     y  = np.arange(len(df))
 
     # Colour each group by its Top-1 tier
     cmap = LinearSegmentedColormap.from_list("perf", ["#E53935", "#FB8C00", "#43A047"])
     colors = [cmap(v) for v in df["top1"].values]
 
-    fig, ax = plt.subplots(figsize=(9, 7))
-    ax.set_facecolor("#FAFAFA")
-    fig.patch.set_facecolor("#FAFAFA")
+    fig, ax = plt.subplots(figsize=(11, 8))
+    fig.subplots_adjust(left=0.22)          # room for long group names
+    ax.set_facecolor("white")
+    fig.patch.set_facecolor("white")
 
     # Subtle alternating row bands
     for i in range(len(df)):
-        ax.axhspan(i - 0.5, i + 0.5, color="white" if i % 2 == 0 else "#F0F0F0", zorder=0)
+        ax.axhspan(i - 0.5, i + 0.5, color="white" if i % 2 == 0 else "#F5F5F5", zorder=0)
 
     for i, (_, row) in enumerate(df.iterrows()):
         t1  = row["top1"]  * 100
@@ -395,61 +402,54 @@ def fig_b_group_lollipop(df_groups: pd.DataFrame, out: Path, top_k: int) -> None
         # Stem from 60 to Top-1
         ax.plot([60, t1], [i, i], color=c, linewidth=2.2, solid_capstyle="round", zorder=2)
 
-        # Gap line Top-1 → Top-k (dashed, only if there's a gap)
-        if tk > t1 + 0.5:
-            ax.plot([t1, tk], [i, i], color=c, linewidth=1.5,
-                    linestyle="--", alpha=0.55, zorder=2)
+        # Dashed extension Top-1 → Top-k (always drawn)
+        ax.plot([t1, tk], [i, i], color="#888888", linewidth=1.5,
+                linestyle="--", alpha=0.7, zorder=2)
 
         # Top-1 filled circle
         ax.scatter(t1, i, s=160, color=c, zorder=4, edgecolors="white", linewidths=1.2)
 
-        # Top-k hollow diamond (only if different)
-        if tk > t1 + 0.5:
-            ax.scatter(tk, i, s=80, marker="D", color="none",
-                       edgecolors=c, linewidths=1.8, zorder=4)
+        # Top-k hollow diamond (always shown, gray)
+        ax.scatter(tk, i, s=90, marker="D", color="none",
+                   edgecolors="#888888", linewidths=1.8, zorder=4)
 
         # MRR tick mark
         ax.plot([mrr, mrr], [i - 0.28, i + 0.28], color=c,
                 linewidth=1.5, alpha=0.6, zorder=3)
 
-        # Value label
-        label_x = max(t1, tk) + 1.2
-        ax.text(label_x, i, f"{t1:.0f}%", va="center", fontsize=8.5,
+        # Value label — in the blank space after 100%
+        ax.text(101.5, i, f"{t1:.0f}%", va="center", fontsize=13,
                 color=c, fontweight="bold")
-
-        # n label on left
-        ax.text(58.5, i, f"n={int(row['n'])}", va="center", ha="right",
-                fontsize=7.5, color="#888888")
 
     # 100% reference line
     ax.axvline(100, color="#BDBDBD", linestyle="--", linewidth=1, zorder=1)
-    ax.text(100.4, len(df) - 0.3, "100%", fontsize=8, color="#BDBDBD")
 
     ax.set_yticks(y)
-    ax.set_yticklabels(df["group"], fontsize=10)
-    ax.set_xlabel("Accuracy (%)", fontsize=11)
-    ax.set_xlim(57, 112)
+    ax.set_yticklabels(df["group"], fontsize=15)
+    ax.set_xlabel("Accuracy (%)", fontsize=16)
+    ax.set_xlim(57, 106)
+    # Hide tick labels beyond 100
+    ax.set_xticks([60, 70, 80, 90, 100])
     ax.set_ylim(-0.7, len(df) - 0.3)
-    ax.set_title("Ingredient Matching Accuracy by Food Group",
-                 fontsize=13, fontweight="bold", pad=14)
+    ax.set_title("Ingredient matching accuracy by food group",
+                 fontsize=18, fontweight="bold", pad=14)
 
-    # Legend
+    # Legend — far bottom left
     legend_elements = [
         Line2D([0], [0], marker="o", color="w", markerfacecolor="#43A047",
                markersize=10, label="Top-1 Accuracy"),
         Line2D([0], [0], marker="D", color="w", markerfacecolor="none",
-               markeredgecolor="#888", markersize=8, label=f"Top-{top_k} Recovery"),
-        Line2D([0], [0], color="#888", linewidth=1.5, alpha=0.6, label="MRR"),
+               markeredgecolor="#888888", markersize=8, label=f"Top-{top_k} Accuracy"),
     ]
-    ax.legend(handles=legend_elements, loc="upper left",
-              bbox_to_anchor=(0.01, 0.99), fontsize=9,
-              framealpha=0.95, edgecolor="#DDDDDD")
+    ax.legend(handles=legend_elements, loc="upper center",
+              bbox_to_anchor=(0.5, -0.08), ncol=2,
+              fontsize=14, framealpha=0.95, edgecolor="#DDDDDD")
 
     # Colour scale bar
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=60, vmax=100))
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax, fraction=0.018, pad=0.02)
-    cbar.set_label("Top-1 Score (%)", fontsize=9)
+    cbar.set_label("Top-1 Score (%)", fontsize=14)
     cbar.ax.tick_params(labelsize=8)
 
     for spine in ax.spines.values():
@@ -485,18 +485,239 @@ def fig_b_score_buckets(df: pd.DataFrame, out: Path) -> None:
 
     for xi, (c, w) in enumerate(zip(c_counts, w_counts)):
         if c > 0:
-            ax.text(xi - width/2, c + 0.15, str(c), ha="center", va="bottom", fontsize=8)
+            ax.text(xi - width/2, c + 0.15, str(c), ha="center", va="bottom", fontsize=12)
         if w > 0:
             ax.text(xi + width/2, w + 0.15, str(w), ha="center", va="bottom",
-                    fontsize=8, color=INCORRECT)
+                    fontsize=12, color=INCORRECT)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9)
-    ax.set_xlabel("Matching Score Range")
-    ax.set_ylabel("Number of Queries")
-    ax.set_title("Part B — Matching Score Distribution: Correct vs Incorrect",
-                 fontsize=12, fontweight="bold")
-    ax.legend(fontsize=9, frameon=False)
+    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=14)
+    ax.set_xlabel("Matching score range")
+    ax.set_ylabel("Number of queries")
+    ax.set_title("Matching score Distribution: correct vs incorrect matches",
+                 fontsize=17, fontweight="bold")
+    ax.legend(fontsize=14, frameon=False)
+    fig.tight_layout()
+    _save(fig, out)
+
+
+def fig_b_group_variety(df: pd.DataFrame, out: Path) -> None:
+    """Horizontal box + jitter per group, sorted by intra-group score std."""
+    group_std    = df.groupby("group")["top1_score"].std().sort_values(ascending=True)
+    groups_sorted = group_std.index.tolist()
+    n = len(groups_sorted)
+
+    cmap   = plt.get_cmap("tab20", n)
+    colors = {g: cmap(i) for i, g in enumerate(groups_sorted)}
+
+    fig, ax = plt.subplots(figsize=(10, max(6, n * 0.55)))
+
+    for i, grp in enumerate(groups_sorted):
+        sub = df[df["group"] == grp]["top1_score"].values
+        c   = colors[grp]
+        ax.boxplot(
+            sub, positions=[i], vert=False, widths=0.5,
+            patch_artist=True, notch=False, showfliers=False,
+            boxprops=dict(facecolor=(*c[:3], 0.25), edgecolor=c),
+            medianprops=dict(color=c, linewidth=2.2),
+            whiskerprops=dict(color=c, linewidth=1.2),
+            capprops=dict(color=c, linewidth=1.5),
+        )
+        rng = np.random.default_rng(seed=42)
+        jit = rng.normal(i, 0.10, size=len(sub))
+        correct_mask = df[df["group"] == grp]["top1_correct"].astype(bool).values
+        ax.scatter(sub[correct_mask],  jit[correct_mask],
+                   s=18, color=c, alpha=0.65, zorder=3)
+        ax.scatter(sub[~correct_mask], jit[~correct_mask],
+                   s=160, color=INCORRECT, marker="X", zorder=6)
+
+    ax.set_yticks(range(n))
+    ax.set_yticklabels(
+        [f"{g}  (σ={group_std[g]:.3f})" for g in groups_sorted], fontsize=13
+    )
+    ax.set_xlabel("Matching score", fontsize=15)
+    ax.set_xlim(0.35, 1.08)
+    ax.set_title("Score spread per food group  (sorted by within-group variability)",
+                 fontsize=17, fontweight="bold", pad=12)
+    ax.axvline(0.75, color="#BDBDBD", linestyle="--", linewidth=1)
+
+    handles = [
+        plt.Line2D([0], [0], marker="X", color=INCORRECT, linestyle="none",
+                   markersize=12, label="Incorrect match"),
+        plt.Line2D([0], [0], color="#BDBDBD", linestyle="--", label="Threshold τ=0.75"),
+    ]
+    ax.legend(handles=handles, loc="upper center",
+              bbox_to_anchor=(0.5, -0.07), ncol=3,
+              fontsize=13, framealpha=0.92, edgecolor="#DDDDDD")
+
+    ax.grid(axis="x", alpha=0.25, linewidth=0.7)
+    ax.set_axisbelow(True)
+    fig.tight_layout()
+    _save(fig, out)
+
+
+def fig_b_combined(df_q: pd.DataFrame, df_groups: pd.DataFrame, out: Path, top_k: int) -> None:
+    """Side-by-side: score spread (b6) + accuracy lollipop (b5), shared y-axis."""
+    from matplotlib.colors import LinearSegmentedColormap
+    from matplotlib.lines import Line2D
+
+    top_k_col = f"top{top_k}"
+
+    # Shared group order: ascending score std
+    group_std    = df_q.groupby("group")["top1_score"].std().sort_values(ascending=True)
+    groups_sorted = group_std.index.tolist()
+    n = len(groups_sorted)
+
+    cmap_grp  = plt.get_cmap("tab20", n)
+    gcolors   = {g: cmap_grp(i) for i, g in enumerate(groups_sorted)}
+    perf_cmap = LinearSegmentedColormap.from_list("perf", ["#E53935", "#FB8C00", "#43A047"])
+
+    # Wider left panel (score spread), narrower right (lollipop)
+    fig, (ax_box, ax_lol) = plt.subplots(
+        1, 2, figsize=(26, max(10, n * 0.72)), sharey=True,
+        gridspec_kw={"width_ratios": [5, 1]}
+    )
+    fig.subplots_adjust(wspace=0.04, left=0.17, right=0.97, top=0.93, bottom=0.13)
+
+    # ── LEFT panel: score spread ───────────────────────────────────────────────
+    for i, grp in enumerate(groups_sorted):
+        sub = df_q[df_q["group"] == grp]["top1_score"].values
+        c   = gcolors[grp]
+        ax_box.boxplot(
+            sub, positions=[i], vert=False, widths=0.52,
+            patch_artist=True, notch=False, showfliers=False,
+            boxprops=dict(facecolor=(*c[:3], 0.22), edgecolor=c),
+            medianprops=dict(color=c, linewidth=2.5),
+            whiskerprops=dict(color=c, linewidth=1.3),
+            capprops=dict(color=c, linewidth=1.5),
+        )
+        rng  = np.random.default_rng(seed=42)
+        jit  = rng.normal(i, 0.10, size=len(sub))
+        mask = df_q[df_q["group"] == grp]["top1_correct"].astype(bool).values
+        ax_box.scatter(sub[mask],  jit[mask],  s=28, color=c, alpha=0.6, zorder=3)
+        ax_box.scatter(sub[~mask], jit[~mask], s=120,
+                       color=INCORRECT, marker="x", linewidths=1.8, zorder=6)
+
+    ax_box.set_xlabel("Matching score", fontsize=22)
+    ax_box.set_xlim(0.44, 1.04)
+    ax_box.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    ax_box.axvline(0.75, color="#BDBDBD", linestyle="--", linewidth=1.2)
+    ax_box.set_title("(A)  Score spread per group", fontsize=22, fontweight="bold", pad=14)
+    ax_box.set_yticks(range(n))
+    ax_box.set_yticklabels(
+        [f"{g}  (σ={group_std[g]:.3f})" for g in groups_sorted], fontsize=19
+    )
+    ax_box.set_ylim(-0.7, n - 0.3)
+    ax_box.tick_params(axis="x", labelsize=19)
+    ax_box.grid(axis="x", alpha=0.22, linewidth=0.7)
+    ax_box.set_axisbelow(True)
+
+    handles_a = [
+        Line2D([0], [0], marker="x", color=INCORRECT, linestyle="none",
+               markersize=14, markeredgewidth=2.2, label="Incorrect match"),
+        Line2D([0], [0], color="#BDBDBD", linestyle="--", linewidth=1.5, label="τ = 0.75"),
+    ]
+    ax_box.legend(handles=handles_a, loc="upper center",
+                  bbox_to_anchor=(0.5, -0.07), ncol=3,
+                  fontsize=17, framealpha=0.95, edgecolor="#DDDDDD")
+
+    # ── RIGHT panel: accuracy lollipop (compact) ─────────────────────────────
+    df_lol = df_groups.set_index("group").reindex(groups_sorted).reset_index()
+    perf_colors = [perf_cmap(float(v)) for v in df_lol["top1"].values]
+
+    for i, (_, row) in enumerate(df_lol.iterrows()):
+        t1  = float(row["top1"])    * 100
+        tk  = float(row[top_k_col]) * 100
+        mrr = float(row["mrr"])     * 100
+        c   = perf_colors[i]
+        ax_lol.plot([75, t1], [i, i], color=c, linewidth=1.5, solid_capstyle="round", zorder=2)
+        ax_lol.plot([t1, tk], [i, i], color="#888888", linewidth=1.0, linestyle="--", alpha=0.55, zorder=2)
+        ax_lol.scatter(t1, i, s=80, color=c, zorder=4, edgecolors="white", linewidths=0.8)
+        ax_lol.scatter(tk, i, s=50, marker="D", color="none",
+                       edgecolors="#888888", linewidths=1.2, zorder=4)
+        ax_lol.text(101.5, i, f"{t1:.0f}%", va="center",
+                    fontsize=19, color=c, fontweight="bold", clip_on=False)
+
+    ax_lol.set_xlabel("Accuracy (%)", fontsize=22)
+    ax_lol.set_xlim(73, 108)
+    ax_lol.set_xticks([75, 85, 95])
+    ax_lol.axvline(100, color="#BDBDBD", linestyle="--", linewidth=0.8, zorder=1)
+    ax_lol.set_title(f"(B)  Top-1 / Top-{top_k}",
+                     fontsize=22, fontweight="bold", pad=14)
+    ax_lol.tick_params(left=False, axis="x", labelsize=19)
+    ax_lol.grid(axis="x", alpha=0.15, linewidth=0.5)
+    ax_lol.set_axisbelow(True)
+
+    sm = plt.cm.ScalarMappable(cmap=perf_cmap, norm=plt.Normalize(vmin=75, vmax=100))
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax_lol, fraction=0.018, pad=0.08)
+    cbar.set_label("Top-1 Accuracy (%)", fontsize=17)
+    cbar.ax.tick_params(labelsize=16)
+
+    handles_b = [
+        Line2D([0], [0], marker="o", color="w", markerfacecolor="#43A047",
+               markersize=9, label="Top-1 Accuracy"),
+        Line2D([0], [0], marker="D", color="w", markerfacecolor="none",
+               markeredgecolor="#888888", markersize=8, label=f"Top-{top_k} Accuracy"),
+    ]
+    ax_lol.legend(handles=handles_b, loc="upper center",
+                  bbox_to_anchor=(0.5, -0.07), ncol=2,
+                  fontsize=17, framealpha=0.95, edgecolor="#DDDDDD")
+
+    fig.suptitle(
+        "Ingredient matching: score spread and retrieval accuracy by food group",
+        fontsize=22, fontweight="bold", y=1.01
+    )
+    _save(fig, out)
+
+
+def fig_b_intra_variability(df: pd.DataFrame, out: Path) -> None:
+    """Dumbbell range chart: min–max score per food concept, sorted by std."""
+    if "primary_kw" not in df.columns:
+        print("  [b7] skipping: 'primary_kw' column not in dataframe — run with --benchmark")
+        return
+
+    intra = (
+        df.groupby(["group", "primary_kw"])["top1_score"]
+        .agg(mean="mean", std="std", lo="min", hi="max", n="count")
+        .reset_index()
+        .dropna(subset=["std"])
+    )
+    intra = intra[intra["n"] > 1].sort_values("std", ascending=True).reset_index(drop=True)
+
+    n_groups = df["group"].nunique()
+    cmap     = plt.get_cmap("tab20", n_groups)
+    grp_list = sorted(df["group"].unique())
+    gcolor   = {g: cmap(i) for i, g in enumerate(grp_list)}
+
+    n_rows = len(intra)
+    fig, ax = plt.subplots(figsize=(10, max(8, n_rows * 0.38)))
+
+    for i, row in intra.iterrows():
+        c = gcolor[row["group"]]
+        ax.plot([row["lo"], row["hi"]], [i, i], color=c, linewidth=2.2, alpha=0.7)
+        ax.scatter(row["mean"], i, color=c, s=55, zorder=4, edgecolors="white", linewidths=0.8)
+        ax.text(row["hi"] + 0.006, i,
+                f"σ={row['std']:.3f}  n={int(row['n'])}",
+                va="center", fontsize=9, color="#444")
+
+    ax.set_yticks(range(n_rows))
+    ax.set_yticklabels(intra["primary_kw"], fontsize=11)
+    ax.set_xlabel("Top-1 matching score", fontsize=15)
+    ax.set_xlim(0.35, 1.12)
+    ax.set_title("Intra-element score variability across query variants",
+                 fontsize=17, fontweight="bold", pad=12)
+
+    legend_handles = [
+        mpatches.Patch(facecolor=gcolor[g], label=g, alpha=0.8)
+        for g in grp_list
+    ]
+    ax.legend(handles=legend_handles, loc="lower right", fontsize=10,
+              ncol=2, framealpha=0.92, edgecolor="#DDDDDD")
+
+    ax.axvline(0.75, color="#BDBDBD", linestyle="--", linewidth=1, alpha=0.7)
+    ax.grid(axis="x", alpha=0.2, linewidth=0.7)
+    ax.set_axisbelow(True)
     fig.tight_layout()
     _save(fig, out)
 
@@ -520,12 +741,12 @@ def fig_c_kg_summary(df: pd.DataFrame, out: Path) -> None:
     axes[0].barh(y, [f * 100 for f in found], 0.4,
                  color=NEUTRAL, alpha=0.4, label="Found in KG")
     axes[0].set_yticks(y)
-    axes[0].set_yticklabels(foods, fontsize=9)
+    axes[0].set_yticklabels(foods, fontsize=14)
     axes[0].set_xlabel("Rate (%)")
     axes[0].set_xlim(0, 118)
     axes[0].axvline(100, color="gray", linestyle="--", linewidth=0.8, alpha=0.4)
-    axes[0].set_title("Per-Food Correctness", fontsize=11, fontweight="bold")
-    axes[0].legend(fontsize=9, frameon=False)
+    axes[0].set_title("Per-Food Correctness", fontsize=16, fontweight="bold")
+    axes[0].legend(fontsize=14, frameon=False)
 
     # Right: overall pie
     total    = len(df)
@@ -547,10 +768,10 @@ def fig_c_kg_summary(df: pd.DataFrame, out: Path) -> None:
     )
     for at in autotexts:
         at.set_fontsize(9)
-    axes[1].set_title("Overall KG Correctness", fontsize=11, fontweight="bold")
+    axes[1].set_title("Overall KG Correctness", fontsize=16, fontweight="bold")
 
     fig.suptitle("Part C — Knowledge Graph Disease Association Correctness",
-                 fontsize=12, fontweight="bold", y=1.01)
+                 fontsize=17, fontweight="bold", y=1.01)
     fig.tight_layout()
     _save(fig, out)
 
@@ -607,7 +828,7 @@ def fig_a_extra_wordclouds(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
             collocations=False,
         ).generate_from_frequencies(freq)
         ax.imshow(wc, interpolation="bilinear")
-        ax.set_title(title, fontsize=11, fontweight="bold", pad=8, color=color)
+        ax.set_title(title, fontsize=16, fontweight="bold", pad=8, color=color)
         ax.axis("off")
 
     for i, model in enumerate(models):
@@ -624,7 +845,7 @@ def fig_a_extra_wordclouds(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
         ax.set_visible(False)
 
     fig.suptitle("Part A — Ingredients Extracted by LLMs Not in Ground Truth",
-                 fontsize=13, fontweight="bold", y=1.01)
+                 fontsize=18, fontweight="bold", y=1.01)
     fig.tight_layout()
     _save(fig, out)
 
@@ -657,17 +878,17 @@ def fig_a_extra_bar(dfs: "dict[str, pd.DataFrame]", out: Path, top_n: int = 20) 
 
     for bar, cnt, agr in zip(bars, counts, agreement):
         ax.text(bar.get_width() + 0.15, bar.get_y() + bar.get_height() / 2,
-                f"{cnt}  ({agr:.0%})", va="center", fontsize=8, color="#555")
+                f"{cnt}  ({agr:.0%})", va="center", fontsize=12, color="#555")
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(0, 1))
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax, fraction=0.02, pad=0.02)
-    cbar.set_label("Model agreement", fontsize=9)
+    cbar.set_label("Model agreement", fontsize=14)
     cbar.ax.tick_params(labelsize=8)
 
     ax.set_xlabel("Times extracted across all models & recipes")
     ax.set_title(f"Part A — Top {top_n} Extra Ingredients Not in Ground Truth",
-                 fontsize=12, fontweight="bold")
+                 fontsize=17, fontweight="bold")
     ax.set_xlim(0, max(counts) * 1.25)
     for spine in ["top", "right"]:
         ax.spines[spine].set_visible(False)
@@ -735,18 +956,18 @@ def fig_a_extra_agreement(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
 
     # ── Layout: thin bar row on top, tall grid canvas below ──────────────────
     max_cols  = 8
-    cell_w    = 2.4
-    cell_h    = 0.9
+    cell_w    = 2.6
+    cell_h    = 1.1
     grid_w    = max_cols * cell_w
     grid_h    = n_models * cell_h
 
-    fig = plt.figure(figsize=(grid_w + 1.8, grid_h + 3.2))
-    gs  = gridspec.GridSpec(2, 1, height_ratios=[1, 3.5], hspace=0.45)
+    fig = plt.figure(figsize=(grid_w + 1.8, grid_h + 4.5))
+    gs  = gridspec.GridSpec(2, 1, height_ratios=[2, 3.5], hspace=0.45)
     ax_bar  = fig.add_subplot(gs[0])
     ax_grid = fig.add_subplot(gs[1])
 
-    fig.suptitle("Extra Ingredients — Model Agreement Analysis",
-                 fontsize=13, fontweight="bold")
+    fig.suptitle("Model agreement analysis in over-extraction of ingredients",
+                 fontsize=18, fontweight="bold")
 
     # ── Top: distribution bar ─────────────────────────────────────────────────
     level_counts = Counter(agree_df["n_models"].values)
@@ -755,26 +976,26 @@ def fig_a_extra_agreement(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
     bars = ax_bar.bar(levels, counts, color=bar_colors,
                       edgecolor="white", linewidth=0.8, zorder=3)
 
-    tier_xlabels = {1: "1 model\n(subjective)", 2: "2 models", 3: "3 models",
-                    4: "4 models", 5: "5 models\n(universal)"}
+    total_pairs = len(agree_df)
     for lv, bar, cnt in zip(levels, bars, counts):
         if cnt == 0:
             continue
         ax_bar.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.4,
-                    str(cnt), ha="center", va="bottom", fontsize=9, fontweight="bold")
+                    str(cnt), ha="center", va="bottom", fontsize=16, fontweight="bold")
 
-    total_pairs = len(agree_df)
-    pct_subj = level_counts.get(1, 0) / total_pairs * 100
-    pct_univ = level_counts.get(n_models, 0) / total_pairs * 100
-    ax_bar.text(0.98, 0.96,
-                f"{pct_subj:.0f}% unique to 1 model  ·  {pct_univ:.0f}% shared by all",
-                transform=ax_bar.transAxes, ha="right", va="top",
-                fontsize=8.5, color="#555",
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#DDD", alpha=0.9))
+    tier_xlabels = {}
+    for lv in levels:
+        cnt  = level_counts.get(lv, 0)
+        pct  = cnt / total_pairs * 100
+        tier = {1: "subjective", n_models: "universal"}.get(lv, "")
+        n_str = f"{lv} model" + ("s" if lv > 1 else "")
+        pct_str = f"{pct:.0f}%"
+        tier_xlabels[lv] = f"{n_str}\n{pct_str}" + (f"\n({tier})" if tier else "")
+
     ax_bar.set_xticks(levels)
-    ax_bar.set_xticklabels([tier_xlabels.get(lv, str(lv)) for lv in levels], fontsize=9)
-    ax_bar.set_ylabel("Pairs (recipe × ingredient)", fontsize=9)
-    ax_bar.set_title("Agreement Level Distribution", fontsize=10, fontweight="bold")
+    ax_bar.set_xticklabels([tier_xlabels[lv] for lv in levels], fontsize=16)
+    ax_bar.set_ylabel("Pairs (recipe × ingredient)", fontsize=16)
+    ax_bar.set_title("Agreement level distribution", fontsize=18, fontweight="bold")
     ax_bar.set_axisbelow(True)
     ax_bar.grid(axis="y", alpha=0.25)
     for spine in ["top", "right"]:
@@ -802,7 +1023,7 @@ def fig_a_extra_agreement(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
             -0.06, y0 + cell_h * 0.5,
             f"{lv}{'★' if tier_label else ''}\n{tier_label}" if tier_label
             else str(lv),
-            ha="right", va="center", fontsize=8.5,
+            ha="right", va="center", fontsize=16,
             color=header_color, fontweight="bold",
             transform=ax_grid.transData
         )
@@ -827,21 +1048,29 @@ def fig_a_extra_agreement(dfs: "dict[str, pd.DataFrame]", out: Path) -> None:
             )
             ax_grid.add_patch(pill)
 
+            # Use white text on dark pills, dark text on light ones
+            r, g, b, _ = plt.cm.colors.to_rgba(color) if hasattr(plt.cm, "colors") else (*color[:3], 1)
+            r, g, b = color[0], color[1], color[2]
+            luminance = 0.299 * r + 0.587 * g + 0.114 * b
+            effective_darkness = 1 - (luminance * (1 - alpha) + alpha * luminance)
+            txt_color  = "white" if alpha * (1 - luminance) > 0.35 else "#111"
+            txt_color2 = "white" if alpha * (1 - luminance) > 0.35 else "#444"
+
             ax_grid.text(
                 x0 + cell_w * 0.5, y0 + cell_h * 0.62,
                 ingr_row["ingredient"],
-                ha="center", va="center", fontsize=8.5,
-                fontweight="bold", color="#111", zorder=3
+                ha="center", va="center", fontsize=16,
+                fontweight="bold", color=txt_color, zorder=3
             )
             ax_grid.text(
                 x0 + cell_w * 0.5, y0 + cell_h * 0.25,
                 f"×{int(ingr_row['total_count'])}",
-                ha="center", va="center", fontsize=7,
-                color="#444", zorder=3
+                ha="center", va="center", fontsize=14,
+                color=txt_color2, zorder=3
             )
 
-    ax_grid.set_title("Top Extras per Agreement Level  (sorted by count →)",
-                      fontsize=10, fontweight="bold", pad=8)
+    ax_grid.set_title("Top extras per agreement level  (sorted by count)",
+                      fontsize=18, fontweight="bold", pad=8)
 
     _save(fig, out)
 
@@ -868,6 +1097,8 @@ def main() -> None:
     parser.add_argument("--results", nargs="+", default=["results/batch1", "results/batch2"], metavar="DIR",
                         help="One or more results directories to merge (Part A is combined, "
                              "Part B/C taken from first dir that has them)")
+    parser.add_argument("--benchmark", default="benchmark.json", metavar="FILE",
+                        help="Path to benchmark.json used for Part B (needed for intra-variability figure)")
     parser.add_argument("--format",  default="png", choices=["png", "pdf"])
     parser.add_argument("--out",     default=None,  metavar="DIR",
                         help="Output directory for figures (default: figures/ next to first --results dir)")
@@ -921,10 +1152,20 @@ def main() -> None:
             [c for c in df_q.columns if c.startswith("top") and "correct" in c][0]
             .replace("top","").replace("_correct","")
         )
+        # Enrich with primary_kw from benchmark for intra-variability analysis
+        bench_path = Path(args.benchmark)
+        if bench_path.exists():
+            import json as _json
+            with open(bench_path) as _f:
+                _bench = _json.load(_f)
+            _kw_map = {q["query"]: q["key_words"][0] for q in _bench["matching_queries"]}
+            df_q["primary_kw"] = df_q["query"].map(_kw_map)
         fig_b_score_distribution(df_q, out / f"b1_score_distribution.{fmt}", top_k)
         fig_b_score_buckets(df_q,      out / f"b3_score_buckets.{fmt}")
         if "group" in df_q.columns:
             fig_b_score_violin_by_group(df_q, out / f"b2_score_violin_by_group.{fmt}")
+            fig_b_group_variety(df_q,         out / f"b6_group_variety.{fmt}")
+            fig_b_intra_variability(df_q,     out / f"b7_intra_variability.{fmt}")
 
     if group_csv:
         df_g  = pd.read_csv(group_csv)
@@ -932,8 +1173,18 @@ def main() -> None:
             [c for c in df_g.columns if c.startswith("top") and c != "top1"][0]
             .replace("top","")
         )
+        # Merge per-group score std from df_q so b5 and b6 share the same sort order
+        if query_csv:
+            _grp_std = (
+                pd.read_csv(query_csv)
+                .groupby("group")["top1_score"].std()
+                .rename("score_std").reset_index()
+            )
+            df_g = df_g.merge(_grp_std, on="group", how="left")
         fig_b_group_accuracy(df_g, out / f"b4_group_accuracy.{fmt}", top_k)
         fig_b_group_lollipop(df_g, out / f"b5_group_lollipop.{fmt}", top_k)
+        if query_csv:
+            fig_b_combined(df_q, df_g, out / f"b56_combined.{fmt}", top_k)
 
     if kg_csv:
         df_kg = pd.read_csv(kg_csv)
