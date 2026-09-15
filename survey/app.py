@@ -423,9 +423,16 @@ def render_survey(block_id: str, block_items: pd.DataFrame, ingredient_matches: 
         )
         match_answers = {}
         for _, match_row in ingredient_matches.iterrows():
-            st.markdown(
-                f"**\"{match_row['query']}\"** → *{match_row['matched_food']}* "
-                f"(grupo: {match_row['food_group']}, similitud: {match_row['score']}%)"
+            st.success(
+                f"\"{match_row['query']}\" → \"{match_row['matched_food']}\" "
+                f"(food group: {match_row['food_group']}, similarity: "
+                f"{match_row['score']}%)"
+            )
+            st.info(
+                f"**Traducción:** \"{match_row['query_es']}\" → "
+                f"\"{match_row['matched_food_es']}\" (grupo: "
+                f"{match_row['food_group_es']}, similitud: "
+                f"{match_row['score']}%)"
             )
             match_correctness = st.radio(
                 "¿Es correcto este emparejamiento?",
