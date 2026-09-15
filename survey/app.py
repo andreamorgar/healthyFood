@@ -306,7 +306,18 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
         # and reject incomplete submissions instead of silently recording
         # a false default answer.
         answers = {}
+        aging_legend_shown = False
         for i, row in block_items.iterrows():
+            if row["type"] == "aging" and not aging_legend_shown:
+                st.info(
+                    "ℹ️ Los siguientes ítems usan el índice de "
+                    "Envejecimiento Saludable (Tessier et al., 2025, "
+                    "*Nature Medicine*), puntuado de 0 a 4: **0 = "
+                    "asociación muy negativa**, **4 = asociación muy "
+                    "positiva** con ese aspecto del envejecimiento "
+                    "saludable en personas mayores."
+                )
+                aging_legend_shown = True
             st.markdown(f"**Ítem {i + 1} de {len(block_items)}**")
             if row.get("relation_text"):
                 st.success(row["relation_text"])
