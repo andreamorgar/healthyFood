@@ -1,0 +1,17 @@
+item_id,block_id,type,food,target,relation_text,citation,link
+I001,1,disease,spinach,hypertension,"Spinach consumption is associated with reduced blood pressure due to high nitrate and potassium content.","Kapil V. et al., Hypertension, 2015",https://doi.org/10.1161/HYPERTENSIONAHA.114.04675
+I002,1,disease,salmon,cardiovascular disease,"Regular salmon intake is linked to lower risk of cardiovascular disease via omega-3 fatty acids.","Mozaffarian D. & Rimm E.B., JAMA, 2006",https://doi.org/10.1001/jama.296.15.1885
+I003,1,aging,blueberries,cognitive decline,"Blueberry polyphenols may slow age-related cognitive decline.","Devore E.E. et al., Annals of Neurology, 2012",https://doi.org/10.1002/ana.23594
+I004,1,cooking_method,broccoli,steaming,"Steaming broccoli preserves glucosinolate content better than boiling.","Vallejo F. et al., J. Sci. Food Agric., 2002",https://doi.org/10.1002/jsfa.1215
+I005,1,disease,garlic,common cold,"Garlic supplementation reduces the frequency of the common cold.","Lissiman E. et al., Cochrane Database Syst Rev, 2014",https://doi.org/10.1002/14651858.CD006206.pub4
+I006,1,aging,tomatoes,skin aging,"Lycopene in tomatoes is associated with reduced photoaging of skin.","Rizwan M. et al., British Journal of Dermatology, 2011",https://doi.org/10.1111/j.1365-2133.2010.09912.x
+I007,1,cooking_method,carrots,boiling,"Boiling carrots increases bioavailable beta-carotene compared to raw consumption.","Livny O. et al., J. Nutr., 2003",
+I008,1,disease,red meat,colorectal cancer,"High consumption of red meat is linked to increased colorectal cancer risk.","Chan D.S. et al., PLoS ONE, 2011",https://doi.org/10.1371/journal.pone.0020456
+I009,2,disease,oats,type 2 diabetes,"Oat beta-glucan improves glycemic control in type 2 diabetes.","Tosh S.M., European J. Clin. Nutr., 2013",https://doi.org/10.1038/ejcn.2013.60
+I010,2,disease,turmeric,inflammation,"Curcumin in turmeric has anti-inflammatory effects relevant to chronic disease.","Hewlings S.J. & Kalman D.S., Foods, 2017",https://doi.org/10.3390/foods6100092
+I011,2,aging,walnuts,cognitive decline,"Walnut consumption is associated with improved cognitive function in aging adults.","Sabate J. et al., J. Nutr. Health Aging, 2019",https://doi.org/10.1007/s12603-019-1191-6
+I012,2,cooking_method,spinach,boiling,"Boiling spinach significantly reduces its vitamin C content compared to steaming.","Yuan G.F. et al., J. Zhejiang Univ. Sci. B, 2009",https://doi.org/10.1631/jzus.B0920051
+I013,2,disease,yogurt,osteoporosis,"Regular yogurt intake supports bone density and may reduce osteoporosis risk.","Ong A.M.J. et al., Osteoporos Int., 2020",
+I014,2,aging,green tea,skin aging,"Green tea catechins may protect skin from UV-induced aging.","Heinrich U. et al., J. Nutr., 2011",https://doi.org/10.3945/jn.111.146753
+I015,2,cooking_method,potato,frying,"Frying potatoes generates acrylamide, a compound of health concern.","Tareke E. et al., J. Agric. Food Chem., 2002",https://doi.org/10.1021/jf020302f
+I016,2,disease,soy,breast cancer,"Soy isoflavone intake has a protective association with breast cancer recurrence.","Chi F. et al., Asian Pac J Cancer Prev, 2013",https://doi.org/10.7314/APJCP.2013.14.4.2407

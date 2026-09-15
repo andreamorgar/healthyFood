@@ -18,6 +18,11 @@ evaluation/results_old/
 # Claude memory
 .claude/
 
+# Survey app — secrets and generated outputs (not source)
+survey/.streamlit/secrets.toml
+survey/analysis/service_account.json
+survey/analysis/summary.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
