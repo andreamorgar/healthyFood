@@ -303,6 +303,11 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
 
         st.divider()
         st.subheader("Ítems a evaluar")
+        st.caption(
+            "Cada ítem incluye una cita de referencia: puedes consultarla si "
+            "quieres comprobar la evidencia antes de responder, pero no es "
+            "obligatorio hacerlo."
+        )
 
         # --- One rating block per item ---
         # index=None keeps radios unselected by default so we can detect
