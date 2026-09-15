@@ -98,7 +98,7 @@ ENGLISH_LEVEL_OPTIONS = [
     "Nativo / bilingüe",
 ]
 CORRECTNESS_OPTIONS = ["De acuerdo", "En desacuerdo", "No estoy seguro/a"]
-MATCH_QUALITY_OPTIONS = ["Perfecto", "Más o menos", "Nada que ver"]
+MATCH_QUALITY_OPTIONS = ["Perfecto", "Aceptable", "Incorrecto"]
 OVERSIMPLIFIED_OPTIONS = ["Sí", "No"]
 
 MIN_AGE = 16
