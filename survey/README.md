@@ -56,13 +56,14 @@ matched_food, score`. Sourced from real evaluation output
 (`evaluation/results/part_b_matching.csv`), not invented.
 
 It's rotated by block like the main items, but asymmetrically: the whole
-evaluation dataset only contains 4 known-incorrect matches (there simply
-aren't more in the real data), so those same 4 (`M01`-`M04`) repeat in
-every block — otherwise "covering more cases" would mean inventing fake
-errors. Each block then adds 4 *different* correct matches (`M05`-`M20`,
-16 unique across the 4 blocks) spanning a range of food groups and
-similarity scores, so the correct-match coverage is broad even though
-the incorrect-match coverage is capped by what's actually in the data.
+evaluation dataset only contains a handful of known-incorrect matches
+(there simply aren't more in the real data), so the same 3 (`M02`-`M04`)
+repeat in every block — otherwise "covering more cases" would mean
+inventing fake errors. Each block then adds 5 *different* correct
+matches (`M05`-`M24`, 20 unique across the 4 blocks) spanning a range of
+food groups and similarity scores, so the correct-match coverage is
+broad even though the incorrect-match coverage is capped by what's
+actually in the data.
 
 ## 2. Block routing
 
