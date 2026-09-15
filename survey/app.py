@@ -311,7 +311,7 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
             if row.get("relation_text"):
                 st.markdown(row["relation_text"])
             if row.get("relation_text_es"):
-                st.caption(f"(Traducción: {row['relation_text_es']})")
+                st.info(f"**Traducción:** {row['relation_text_es']}")
             if pd.notna(row.get("link")) and str(row.get("link")).strip():
                 st.markdown(f"[Cita de referencia]({row['link']}) — {row.get('citation', '')}")
             elif row.get("citation"):
