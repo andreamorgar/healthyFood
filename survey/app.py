@@ -309,7 +309,7 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
         for i, row in block_items.iterrows():
             st.markdown(f"**Ítem {i + 1} de {len(block_items)}**")
             if row.get("relation_text"):
-                st.markdown(row["relation_text"])
+                st.success(row["relation_text"])
             if row.get("relation_text_es"):
                 st.info(f"**Traducción:** {row['relation_text_es']}")
             if pd.notna(row.get("link")) and str(row.get("link")).strip():
