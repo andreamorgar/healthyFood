@@ -11,6 +11,7 @@ filesystem is ephemeral and not shared across sessions/instances.
 import time
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -52,7 +53,11 @@ CONSENT_TEXT = (
 SPREADSHEET_NAME = "FoodMedKG_Survey_Responses"  # placeholder
 RESPONSES_WORKSHEET = "responses"
 
-ITEMS_CSV_PATH = "items.csv"
+# Resolved relative to this file, not the working directory: Streamlit
+# Community Cloud runs the app with the repo root as cwd (even though the
+# main file lives at survey/app.py), so a bare "items.csv" would 404 there
+# despite working locally when launched via `cd survey && streamlit run`.
+ITEMS_CSV_PATH = Path(__file__).parent / "items.csv"
 
 YEAR_OF_STUDY_OPTIONS = ["1", "2", "3", "4", "5", "6", "Postgraduate"]
 SPECIALIZATION_OPTIONS = ["Nutrition", "Dietetics", "Medicine", "Other"]
