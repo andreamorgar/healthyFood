@@ -22,30 +22,31 @@ from google.oauth2.service_account import Credentials
 # Placeholders — fill these in before real deployment.
 # --------------------------------------------------------------------------
 
-# TODO: replace with the final consent/info paragraph provided by the study
-# authors before distributing real block links to students.
 CONSENT_TEXT = (
-    "You are invited to take part in a research study evaluating "
-    "**FoodMedKG**, a knowledge graph linking foods to diseases, aging "
-    "indicators, and cooking methods, developed as part of a research "
-    "project at the **University of Granada**. You will be asked to "
-    "review a small set of food–health relations extracted from the "
-    "knowledge graph and judge whether each one is correct and whether "
-    "it is oversimplified. The survey takes about 10–12 minutes to "
-    "complete.\n\n"
-    "Participation is entirely **voluntary and anonymous**: we do not "
-    "collect your name, email, or any other identifying information. The "
-    "only information requested about you (year of study, specialization, "
-    "gender, age, and level of English) is used solely to describe the "
-    "group of respondents in aggregate. You may stop at any point before "
-    "submitting without consequence; once submitted, individual responses "
-    "cannot be withdrawn, since they are not linked to your identity.\n\n"
-    "Your responses will be used only in aggregate, for academic research "
-    "purposes, and will not be shared individually. If you have any "
-    "questions about this study, you can contact Andrea Morales Garzón "
-    "at amoralesg@ugr.es.\n\n"
-    "By checking the box below, you confirm that you have read this "
-    "information and voluntarily agree to participate."
+    "Te invitamos a participar en un estudio de investigación que evalúa "
+    "**FoodMedKG**, un grafo de conocimiento que relaciona alimentos con "
+    "enfermedades, indicadores de envejecimiento y métodos de cocción, "
+    "desarrollado como parte de un proyecto de investigación de la "
+    "**Universidad de Granada**. Se te pedirá que revises un pequeño "
+    "conjunto de relaciones alimento-salud extraídas del grafo de "
+    "conocimiento y que valores si cada una es correcta y si está "
+    "simplificada en exceso. La encuesta tarda entre 10 y 12 minutos en "
+    "completarse.\n\n"
+    "La participación es totalmente **voluntaria y anónima**: no "
+    "recogemos tu nombre, correo electrónico ni ninguna otra información "
+    "identificativa. La única información que se solicita sobre ti (año "
+    "de curso, especialidad, género, edad y nivel de inglés) se usa "
+    "únicamente para describir al grupo de participantes de forma "
+    "agregada. Puedes dejar de participar en cualquier momento antes de "
+    "enviar el formulario sin ninguna consecuencia; una vez enviado, las "
+    "respuestas individuales no se pueden retirar, ya que no están "
+    "vinculadas a tu identidad.\n\n"
+    "Tus respuestas se utilizarán únicamente de forma agregada, con "
+    "fines de investigación académica, y no se compartirán de forma "
+    "individual. Si tienes cualquier pregunta sobre este estudio, puedes "
+    "contactar con Andrea Morales Garzón en amoralesg@ugr.es.\n\n"
+    "Al marcar la casilla de abajo, confirmas que has leído esta "
+    "información y que aceptas participar de forma voluntaria."
 )
 
 # Name of the Google Sheet (spreadsheet) that stores responses.
@@ -59,17 +60,25 @@ RESPONSES_WORKSHEET = "responses"
 # despite working locally when launched via `cd survey && streamlit run`.
 ITEMS_CSV_PATH = Path(__file__).parent / "items.csv"
 
-YEAR_OF_STUDY_OPTIONS = ["1", "2", "3", "4", "5", "6", "Postgraduate"]
-SPECIALIZATION_OPTIONS = ["Nutrition", "Dietetics", "Medicine", "Other"]
-GENDER_OPTIONS = ["Female", "Male", "Non-binary", "Prefer not to say", "Other"]
+YEAR_OF_STUDY_OPTIONS = ["1", "2", "3", "4", "5", "6", "Postgrado"]
+SPECIALIZATION_OPTIONS = ["Nutrición", "Dietética", "Medicina", "Otra"]
+GENDER_OPTIONS = ["Mujer", "Hombre", "No binario", "Prefiero no decirlo", "Otro"]
 ENGLISH_LEVEL_OPTIONS = [
-    "Beginner (A1-A2)",
-    "Intermediate (B1-B2)",
-    "Advanced (C1-C2)",
-    "Native / bilingual",
+    "Principiante (A1-A2)",
+    "Intermedio (B1-B2)",
+    "Avanzado (C1-C2)",
+    "Nativo / bilingüe",
 ]
-CORRECTNESS_OPTIONS = ["Agree", "Disagree", "Not sure"]
-OVERSIMPLIFIED_OPTIONS = ["Yes", "No"]
+CORRECTNESS_OPTIONS = ["De acuerdo", "En desacuerdo", "No estoy seguro/a"]
+OVERSIMPLIFIED_OPTIONS = ["Sí", "No"]
+
+# Spanish display labels for the item "type" column, which stays in
+# English in items.csv/the Sheet (it's a data category, not free text).
+TYPE_LABELS_ES = {
+    "disease": "enfermedad",
+    "aging": "envejecimiento",
+    "cooking_method": "método de cocción",
+}
 
 MIN_AGE = 16
 MAX_AGE = 100
@@ -92,7 +101,7 @@ RESPONSE_COLUMNS = [
     "comment",
 ]
 
-st.set_page_config(page_title="FoodMedKG Evaluation Survey", layout="centered")
+st.set_page_config(page_title="Encuesta de Evaluación FoodMedKG", layout="centered")
 
 
 # --------------------------------------------------------------------------
@@ -211,21 +220,24 @@ if "submitted" not in st.session_state:
 # Landing screen — shown when no valid block is present in the URL.
 # --------------------------------------------------------------------------
 def render_landing_screen():
-    st.title("FoodMedKG Evaluation Survey")
+    st.title("Encuesta de Evaluación FoodMedKG")
     st.warning(
-        "No valid survey block was found in this link.\n\n"
-        "Please use the exact link that was shared with you by the study "
-        "coordinators (it should look like `...?block=3`). If you believe "
-        "this is an error, contact the research team rather than guessing "
-        "a block number."
+        "No se ha encontrado un bloque de encuesta válido en este "
+        "enlace.\n\n"
+        "Por favor, utiliza exactamente el enlace que te han compartido "
+        "los coordinadores del estudio (debería tener un aspecto como "
+        "`...?block=3`). Si crees que se trata de un error, contacta con "
+        "el equipo de investigación en lugar de probar un número de "
+        "bloque al azar."
     )
 
 
 def render_thank_you():
-    st.title("Thank you!")
+    st.title("¡Gracias!")
     st.success(
-        "Your responses have been recorded. You may now close this tab. "
-        "Thank you for contributing to the FoodMedKG evaluation study."
+        "Tus respuestas se han guardado correctamente. Ya puedes cerrar "
+        "esta pestaña. Gracias por contribuir al estudio de evaluación "
+        "de FoodMedKG."
     )
 
 
@@ -233,40 +245,40 @@ def render_thank_you():
 # Main survey rendering.
 # --------------------------------------------------------------------------
 def render_survey(block_id: str, block_items: pd.DataFrame):
-    st.title("FoodMedKG Evaluation Survey")
-    st.caption(f"Block {block_id} — {len(block_items)} items")
+    st.title("Encuesta de Evaluación FoodMedKG")
+    st.caption(f"Bloque {block_id} — {len(block_items)} ítems")
 
     with st.form("survey_form", clear_on_submit=False):
         # --- Consent + demographic header (shown once, above the items) ---
-        st.subheader("Before you begin")
+        st.subheader("Antes de empezar")
         st.markdown(CONSENT_TEXT)
         consent_given = st.checkbox(
-            "I have read the information above and agree to participate in this study."
+            "He leído la información anterior y acepto participar en este estudio."
         )
 
         col1, col2 = st.columns(2)
         with col1:
             year_of_study = st.selectbox(
-                "Year of study",
+                "Año de curso",
                 YEAR_OF_STUDY_OPTIONS,
                 index=None,
-                placeholder="Select year of study",
+                placeholder="Selecciona tu año de curso",
             )
         with col2:
             specialization = st.selectbox(
-                "Specialization / field",
+                "Especialidad / área",
                 SPECIALIZATION_OPTIONS,
                 index=None,
-                placeholder="Select specialization",
+                placeholder="Selecciona tu especialidad",
             )
 
         col3, col4, col5 = st.columns(3)
         with col3:
             gender = st.selectbox(
-                "Gender",
+                "Género",
                 GENDER_OPTIONS,
                 index=None,
-                placeholder="Select gender",
+                placeholder="Selecciona tu género",
             )
         with col4:
             # min_value is set below the real minimum (0) so the field
@@ -274,23 +286,23 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
             # value=None, which disables the +/- stepper buttons in
             # Streamlit until the user types a number manually.
             age = st.number_input(
-                "Age",
+                "Edad",
                 min_value=0,
                 max_value=MAX_AGE,
                 value=0,
                 step=1,
-                help=f"Use +/- or type your age (must be at least {MIN_AGE}).",
+                help=f"Usa +/- o escribe tu edad (debe ser de al menos {MIN_AGE} años).",
             )
         with col5:
             english_level = st.selectbox(
-                "Level of English",
+                "Nivel de inglés",
                 ENGLISH_LEVEL_OPTIONS,
                 index=None,
-                placeholder="Select level",
+                placeholder="Selecciona tu nivel",
             )
 
         st.divider()
-        st.subheader("Items to evaluate")
+        st.subheader("Ítems a evaluar")
 
         # --- One rating block per item ---
         # index=None keeps radios unselected by default so we can detect
@@ -298,32 +310,33 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
         # a false default answer.
         answers = {}
         for i, row in block_items.iterrows():
-            st.markdown(f"**Item {i + 1} of {len(block_items)}**")
-            relation_text = f"Food: **{row['food']}** → {row['type']}: **{row['target']}**"
+            st.markdown(f"**Ítem {i + 1} de {len(block_items)}**")
+            type_es = TYPE_LABELS_ES.get(row["type"], row["type"])
+            relation_text = f"Alimento: **{row['food']}** → {type_es}: **{row['target']}**"
             st.markdown(relation_text)
             if row.get("relation_text"):
                 st.caption(row["relation_text"])
             if pd.notna(row.get("link")) and str(row.get("link")).strip():
-                st.markdown(f"[Supporting citation]({row['link']}) — {row.get('citation', '')}")
+                st.markdown(f"[Cita de referencia]({row['link']}) — {row.get('citation', '')}")
             elif row.get("citation"):
-                st.caption(f"Citation: {row['citation']}")
+                st.caption(f"Cita: {row['citation']}")
 
             correctness = st.radio(
-                "Correctness of this relation",
+                "¿Es correcta esta relación?",
                 CORRECTNESS_OPTIONS,
                 index=None,
                 key=f"correctness_{row['item_id']}",
                 horizontal=True,
             )
             oversimplified = st.radio(
-                "Is this relation oversimplified?",
+                "¿Es una simplificación excesiva?",
                 OVERSIMPLIFIED_OPTIONS,
                 index=None,
                 key=f"oversimplified_{row['item_id']}",
                 horizontal=True,
             )
             comment = st.text_area(
-                "Optional comment",
+                "Comentario (opcional)",
                 key=f"comment_{row['item_id']}",
                 height=68,
             )
@@ -335,7 +348,7 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
             }
             st.divider()
 
-        submitted = st.form_submit_button("Submit", use_container_width=True)
+        submitted = st.form_submit_button("Enviar", use_container_width=True)
 
     if not submitted:
         return
@@ -343,17 +356,17 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
     # --- Validation ---
     errors = []
     if not consent_given:
-        errors.append("You must agree to the consent statement above to participate.")
+        errors.append("Debes aceptar el consentimiento anterior para participar.")
     if not year_of_study:
-        errors.append("Year of study is required.")
+        errors.append("El año de curso es obligatorio.")
     if not specialization:
-        errors.append("Specialization is required.")
+        errors.append("La especialidad es obligatoria.")
     if not gender:
-        errors.append("Gender is required.")
+        errors.append("El género es obligatorio.")
     if age < MIN_AGE:
-        errors.append(f"Age is required and must be at least {MIN_AGE}.")
+        errors.append(f"La edad es obligatoria y debe ser de al menos {MIN_AGE} años.")
     if not english_level:
-        errors.append("Level of English is required.")
+        errors.append("El nivel de inglés es obligatorio.")
 
     incomplete_items = [
         item_id
@@ -362,8 +375,8 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
     ]
     if incomplete_items:
         errors.append(
-            "The following items are missing a required answer: "
-            + ", ".join(incomplete_items)
+            "Los siguientes ítems tienen alguna respuesta obligatoria sin "
+            "rellenar: " + ", ".join(incomplete_items)
         )
 
     if errors:
@@ -400,9 +413,9 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
         append_responses(rows)
     except Exception as exc:  # noqa: BLE001 - surface any Sheets/auth error to the user
         st.error(
-            "There was a problem saving your responses. Please do not "
-            "close this tab — contact the study coordinators with the "
-            f"following error: {exc}"
+            "Ha habido un problema al guardar tus respuestas. Por favor, "
+            "no cierres esta pestaña — contacta con el equipo del estudio "
+            f"indicando este error: {exc}"
         )
         return
 

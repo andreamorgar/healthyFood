@@ -38,7 +38,7 @@ RESPONSES_WORKSHEET = "responses"
 CREDENTIALS_JSON_PATH = Path(__file__).parent / "service_account.json"
 SECRETS_TOML_PATH = Path(__file__).parent.parent / ".streamlit" / "secrets.toml"
 
-CORRECTNESS_CATEGORIES = ["Agree", "Disagree", "Not sure"]
+CORRECTNESS_CATEGORIES = ["De acuerdo", "En desacuerdo", "No estoy seguro/a"]
 
 OUTPUT_CSV_PATH = Path(__file__).parent / "summary.csv"
 
@@ -122,16 +122,16 @@ def build_summary(df: pd.DataFrame) -> pd.DataFrame:
     for item_id, group in df.groupby("item_id"):
         n_raters = len(group)
         correctness_counts = group["correctness"].value_counts(normalize=True) * 100
-        oversimplified_pct = (group["oversimplified"] == "Yes").mean() * 100
+        oversimplified_pct = (group["oversimplified"] == "Sí").mean() * 100
         rows.append(
             {
                 "item_id": item_id,
                 "type": group["type"].iloc[0],
                 "food": group["food"].iloc[0],
                 "target": group["target"].iloc[0],
-                "pct_agree": round(correctness_counts.get("Agree", 0.0), 1),
-                "pct_disagree": round(correctness_counts.get("Disagree", 0.0), 1),
-                "pct_not_sure": round(correctness_counts.get("Not sure", 0.0), 1),
+                "pct_agree": round(correctness_counts.get("De acuerdo", 0.0), 1),
+                "pct_disagree": round(correctness_counts.get("En desacuerdo", 0.0), 1),
+                "pct_not_sure": round(correctness_counts.get("No estoy seguro/a", 0.0), 1),
                 "pct_oversimplified": round(oversimplified_pct, 1),
                 "n_raters": n_raters,
             }
