@@ -25,19 +25,36 @@ survey/
 
 Columns: `item_id, block_id, type, food, target, relation_text, relation_text_es, citation, link`
 
-`relation_text_es` is a Spanish translation of `relation_text`, shown to
-respondents in parentheses below the English original.
+`relation_text` is the primary text shown per item (it names the food
+explicitly, e.g. "Broccoli (steamed): ..." or "Coffee scores 1/4 on...")
+since the graph's own per-type data doesn't always mention the food on its
+own. `relation_text_es` is a Spanish translation, highlighted below it.
 
 - `type` is one of `disease`, `aging`, `cooking_method`.
-- `target` is the disease name / aging indicator / cooking method name.
-- `link` may be empty; if present it is rendered as a clickable citation link.
+- `target` is the disease name / Healthy Aging sub-indicator / cooking
+  method name.
+- `link` may be empty (all `aging` items have real citations now, via
+  Tessier et al. 2025; only if you add new rows without a source should
+  citation/link be left blank rather than fabricated).
 - `block_id` determines which respondents see which items — assign block
   numbers so that each sub-group of students gets a distinct `?block=N`
   link and no one is expected to rate the entire pool.
 
-The included `items.csv` is **sample/placeholder data** (blocks 1–2, a
-handful of rows across all three `type` values) so the app is runnable
-immediately. Replace it with the real item pool before distributing links.
+The included `items.csv` is a **real 80-item pool** (4 blocks of 20: 10
+disease + 5 cooking_method + 5 aging each) extracted directly from the
+project's Neo4j graph — see the git history for how each type was sourced
+and what citations back it. Regenerate or replace it as the real study
+design evolves.
+
+## 1b. `ingredient_matches.csv` — the extra task
+
+A short, separate task (same 8 pairs shown to every respondent regardless
+of block) evaluating a different part of the system: whether the
+automatic matching of a free-text recipe ingredient to a specific food
+entry in the database looks correct. Columns: `match_id, query,
+food_group, matched_food, score`. Sourced from real evaluation output
+(`evaluation/results/part_b_matching.csv`), not invented — includes both
+correct and known-incorrect matches.
 
 ## 2. Block routing
 
@@ -58,9 +75,10 @@ links must be distributed manually to each sub-group of students.
 1. **Create the Google Sheet** that will store responses. Note its exact
    name (or switch the app to open by key/ID — see the note in `app.py`
    and `analysis/analyze_responses.py` where `SPREADSHEET_NAME` is
-   defined). No worksheet setup is required — the app creates the
-   `responses` worksheet and header row automatically on first submission
-   if it doesn't already exist.
+   defined). No worksheet setup is required — the app creates both the
+   `responses` worksheet (main items) and `ingredient_match_responses`
+   worksheet (extra task) with their header rows automatically on first
+   submission if they don't already exist.
 
 2. **Create a Google Cloud service account:**
    - Go to the [Google Cloud Console](https://console.cloud.google.com/),

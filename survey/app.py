@@ -30,7 +30,9 @@ CONSENT_TEXT = (
     "**Universidad de Granada**. Se te pedirá que revises un pequeño "
     "conjunto de relaciones alimento-salud extraídas del grafo de "
     "conocimiento y que valores si cada una es correcta y si está "
-    "simplificada en exceso. La encuesta tarda entre 10 y 12 minutos en "
+    "simplificada en exceso. También incluye una tarea corta adicional "
+    "sobre el emparejamiento de ingredientes con alimentos de la base de "
+    "datos. La encuesta tarda entre 12 y 15 minutos en "
     "completarse.\n\n"
     "La participación es totalmente **voluntaria y anónima**: no "
     "recogemos tu nombre, correo electrónico ni ninguna otra información "
@@ -59,6 +61,32 @@ RESPONSES_WORKSHEET = "responses"
 # main file lives at survey/app.py), so a bare "items.csv" would 404 there
 # despite working locally when launched via `cd survey && streamlit run`.
 ITEMS_CSV_PATH = Path(__file__).parent / "items.csv"
+
+# Extra task, shown to every respondent regardless of block (it's short and
+# evaluates a different part of the system - the LLM's ingredient-name to
+# database-food matching step - not the knowledge graph relations above).
+# Pulled from real evaluation output (evaluation/results/part_b_matching.csv),
+# not invented: 4 real mismatches plus 4 correct matches spanning the
+# similarity-score range.
+INGREDIENT_MATCHES_CSV_PATH = Path(__file__).parent / "ingredient_matches.csv"
+MATCH_RESPONSES_WORKSHEET = "ingredient_match_responses"
+MATCH_RESPONSE_COLUMNS = [
+    "timestamp",
+    "respondent_id",
+    "block_id",
+    "year_of_study",
+    "specialization",
+    "gender",
+    "age",
+    "english_level",
+    "match_id",
+    "query",
+    "food_group",
+    "matched_food",
+    "score",
+    "correct_judgment",
+    "comment",
+]
 
 YEAR_OF_STUDY_OPTIONS = ["1", "2", "3", "4", "5", "6", "Postgrado"]
 SPECIALIZATION_OPTIONS = ["Nutrición", "Dietética", "Otra"]
@@ -124,6 +152,11 @@ def get_block_items(items_df: pd.DataFrame, block_id: str) -> pd.DataFrame:
     return items_df[items_df["block_id"] == block_id].reset_index(drop=True)
 
 
+@st.cache_data
+def load_ingredient_matches(path: str) -> pd.DataFrame:
+    return pd.read_csv(path, dtype=str)
+
+
 # --------------------------------------------------------------------------
 # Google Sheets persistence.
 #
@@ -145,11 +178,11 @@ def get_gspread_client():
     return gspread.authorize(credentials)
 
 
-def get_responses_worksheet():
+def get_or_create_worksheet(worksheet_name: str, columns: list[str]):
     client = get_gspread_client()
     spreadsheet = client.open(SPREADSHEET_NAME)
     try:
-        return spreadsheet.worksheet(RESPONSES_WORKSHEET)
+        return spreadsheet.worksheet(worksheet_name)
     except gspread.exceptions.WorksheetNotFound:
         pass
 
@@ -159,16 +192,16 @@ def get_responses_worksheet():
     # as success and just fetch the worksheet the other request created.
     try:
         worksheet = spreadsheet.add_worksheet(
-            title=RESPONSES_WORKSHEET, rows=1000, cols=len(RESPONSE_COLUMNS)
+            title=worksheet_name, rows=1000, cols=len(columns)
         )
-        worksheet.append_row(RESPONSE_COLUMNS)
+        worksheet.append_row(columns)
         return worksheet
     except gspread.exceptions.APIError:
-        return spreadsheet.worksheet(RESPONSES_WORKSHEET)
+        return spreadsheet.worksheet(worksheet_name)
 
 
-def append_responses(rows: list[list[str]]) -> None:
-    """Append all of a respondent's rows in a single API call.
+def append_rows_to_worksheet(worksheet, rows: list[list[str]]) -> None:
+    """Append rows in a single API call, retrying transient failures.
 
     Batching keeps well under Google Sheets' per-minute write quota (60
     write requests/minute for a single service account), which is easy to
@@ -184,16 +217,29 @@ def append_responses(rows: list[list[str]]) -> None:
     # anything else (e.g. bad credentials, permission errors) is raised
     # immediately since retrying it would never succeed.
     RETRYABLE_CODES = {429, 500, 502, 503, 504}
-    worksheet = get_responses_worksheet()
     max_attempts = 4
     for attempt in range(max_attempts):
         try:
-            worksheet.append_rows(rows, value_input_option="USER_ENTERED")
+            # RAW avoids Sheets re-parsing numeric-looking strings according
+            # to the spreadsheet's locale (USER_ENTERED did this: a score
+            # like "0.8729" got silently reinterpreted as 8,729 on a
+            # Spanish-locale Sheet, where "." is a thousands separator).
+            worksheet.append_rows(rows, value_input_option="RAW")
             return
         except gspread.exceptions.APIError as exc:
             if exc.code not in RETRYABLE_CODES or attempt == max_attempts - 1:
                 raise
             time.sleep(2**attempt)  # 1s, 2s, 4s backoff before retrying
+
+
+def append_responses(rows: list[list[str]]) -> None:
+    worksheet = get_or_create_worksheet(RESPONSES_WORKSHEET, RESPONSE_COLUMNS)
+    append_rows_to_worksheet(worksheet, rows)
+
+
+def append_match_responses(rows: list[list[str]]) -> None:
+    worksheet = get_or_create_worksheet(MATCH_RESPONSES_WORKSHEET, MATCH_RESPONSE_COLUMNS)
+    append_rows_to_worksheet(worksheet, rows)
 
 
 # --------------------------------------------------------------------------
@@ -236,7 +282,7 @@ def render_thank_you():
 # --------------------------------------------------------------------------
 # Main survey rendering.
 # --------------------------------------------------------------------------
-def render_survey(block_id: str, block_items: pd.DataFrame):
+def render_survey(block_id: str, block_items: pd.DataFrame, ingredient_matches: pd.DataFrame):
     st.title("Encuesta de Evaluación FoodMedKG")
     st.caption(f"Bloque {block_id} — {len(block_items)} ítems")
 
@@ -355,6 +401,44 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
             }
             st.divider()
 
+        # --- Extra task: LLM ingredient-name -> database-food matching ---
+        # A separate, short task (same 8 pairs for every respondent,
+        # independent of block) evaluating a different part of the system:
+        # whether the automatic matching of a free-text ingredient name to
+        # a specific food entry in the database looks right, not whether a
+        # graph relation is scientifically correct.
+        st.subheader("Tarea extra: comprobación de alimentos")
+        st.caption(
+            "Cuando alguien escribe una receta, el sistema intenta emparejar "
+            "cada ingrediente con un alimento concreto de la base de datos. "
+            "A continuación tienes algunos de esos emparejamientos "
+            "automáticos — indica si te parecen correctos."
+        )
+        match_answers = {}
+        for _, match_row in ingredient_matches.iterrows():
+            st.markdown(
+                f"**\"{match_row['query']}\"** → *{match_row['matched_food']}* "
+                f"(grupo: {match_row['food_group']}, similitud: {match_row['score']})"
+            )
+            match_correctness = st.radio(
+                "¿Es correcto este emparejamiento?",
+                CORRECTNESS_OPTIONS,
+                index=None,
+                key=f"match_{match_row['match_id']}",
+                horizontal=True,
+            )
+            match_comment = st.text_area(
+                "Comentario (opcional)",
+                key=f"match_comment_{match_row['match_id']}",
+                height=68,
+            )
+            match_answers[match_row["match_id"]] = {
+                "row": match_row,
+                "correctness": match_correctness,
+                "comment": match_comment,
+            }
+            st.divider()
+
         submitted = st.form_submit_button("Enviar", use_container_width=True)
 
     if not submitted:
@@ -384,6 +468,15 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
         errors.append(
             "Los siguientes ítems tienen alguna respuesta obligatoria sin "
             "rellenar: " + ", ".join(incomplete_items)
+        )
+
+    incomplete_matches = [
+        match_id for match_id, a in match_answers.items() if a["correctness"] is None
+    ]
+    if incomplete_matches:
+        errors.append(
+            "Los siguientes emparejamientos de la tarea extra están sin "
+            "responder: " + ", ".join(incomplete_matches)
         )
 
     if errors:
@@ -416,8 +509,32 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
             ]
         )
 
+    match_rows = []
+    for match_id, a in match_answers.items():
+        match_row = a["row"]
+        match_rows.append(
+            [
+                timestamp,
+                st.session_state.respondent_id,
+                block_id,
+                year_of_study,
+                specialization,
+                gender,
+                int(age),
+                english_level,
+                match_id,
+                match_row["query"],
+                match_row["food_group"],
+                match_row["matched_food"],
+                match_row["score"],
+                a["correctness"],
+                a["comment"] or "",
+            ]
+        )
+
     try:
         append_responses(rows)
+        append_match_responses(match_rows)
     except Exception as exc:  # noqa: BLE001 - surface any Sheets/auth error to the user
         st.error(
             "Ha habido un problema al guardar tus respuestas. Por favor, "
@@ -450,7 +567,8 @@ def main():
         render_landing_screen()
         return
 
-    render_survey(block_id, block_items)
+    ingredient_matches = load_ingredient_matches(INGREDIENT_MATCHES_CSV_PATH)
+    render_survey(block_id, block_items, ingredient_matches)
 
 
 if __name__ == "__main__":
