@@ -23,7 +23,10 @@ survey/
 
 ## 1. `items.csv` format
 
-Columns: `item_id, block_id, type, food, target, relation_text, citation, link`
+Columns: `item_id, block_id, type, food, target, relation_text, relation_text_es, citation, link`
+
+`relation_text_es` is a Spanish translation of `relation_text`, shown to
+respondents in parentheses below the English original.
 
 - `type` is one of `disease`, `aging`, `cooking_method`.
 - `target` is the disease name / aging indicator / cooking method name.

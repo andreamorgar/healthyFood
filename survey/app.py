@@ -72,14 +72,6 @@ ENGLISH_LEVEL_OPTIONS = [
 CORRECTNESS_OPTIONS = ["De acuerdo", "En desacuerdo", "No estoy seguro/a"]
 OVERSIMPLIFIED_OPTIONS = ["Sí", "No"]
 
-# Spanish display labels for the item "type" column, which stays in
-# English in items.csv/the Sheet (it's a data category, not free text).
-TYPE_LABELS_ES = {
-    "disease": "enfermedad",
-    "aging": "envejecimiento",
-    "cooking_method": "método de cocción",
-}
-
 MIN_AGE = 16
 MAX_AGE = 100
 
@@ -316,11 +308,10 @@ def render_survey(block_id: str, block_items: pd.DataFrame):
         answers = {}
         for i, row in block_items.iterrows():
             st.markdown(f"**Ítem {i + 1} de {len(block_items)}**")
-            type_es = TYPE_LABELS_ES.get(row["type"], row["type"])
-            relation_text = f"Alimento: **{row['food']}** → {type_es}: **{row['target']}**"
-            st.markdown(relation_text)
             if row.get("relation_text"):
-                st.caption(row["relation_text"])
+                st.markdown(row["relation_text"])
+            if row.get("relation_text_es"):
+                st.caption(f"(Traducción: {row['relation_text_es']})")
             if pd.notna(row.get("link")) and str(row.get("link")).strip():
                 st.markdown(f"[Cita de referencia]({row['link']}) — {row.get('citation', '')}")
             elif row.get("citation"):
