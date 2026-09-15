@@ -155,7 +155,13 @@ def get_block_items(items_df: pd.DataFrame, block_id: str) -> pd.DataFrame:
 
 @st.cache_data
 def load_ingredient_matches(path: str) -> pd.DataFrame:
-    return pd.read_csv(path, dtype=str)
+    df = pd.read_csv(path, dtype=str)
+    df["block_id"] = df["block_id"].astype(str)
+    return df
+
+
+def get_block_matches(matches_df: pd.DataFrame, block_id: str) -> pd.DataFrame:
+    return matches_df[matches_df["block_id"] == block_id].reset_index(drop=True)
 
 
 # --------------------------------------------------------------------------
@@ -568,8 +574,9 @@ def main():
         render_landing_screen()
         return
 
-    ingredient_matches = load_ingredient_matches(INGREDIENT_MATCHES_CSV_PATH)
-    render_survey(block_id, block_items, ingredient_matches)
+    matches_df = load_ingredient_matches(INGREDIENT_MATCHES_CSV_PATH)
+    block_matches = get_block_matches(matches_df, block_id)
+    render_survey(block_id, block_items, block_matches)
 
 
 if __name__ == "__main__":

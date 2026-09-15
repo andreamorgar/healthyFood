@@ -48,13 +48,21 @@ design evolves.
 
 ## 1b. `ingredient_matches.csv` — the extra task
 
-A short, separate task (same 8 pairs shown to every respondent regardless
-of block) evaluating a different part of the system: whether the
-automatic matching of a free-text recipe ingredient to a specific food
-entry in the database looks correct. Columns: `match_id, query,
-food_group, matched_food, score`. Sourced from real evaluation output
-(`evaluation/results/part_b_matching.csv`), not invented — includes both
-correct and known-incorrect matches.
+A short, separate task shown after the main items, evaluating a
+different part of the system: whether the automatic matching of a
+free-text recipe ingredient to a specific food entry in the database
+looks correct. Columns: `match_id, block_id, query, food_group,
+matched_food, score`. Sourced from real evaluation output
+(`evaluation/results/part_b_matching.csv`), not invented.
+
+It's rotated by block like the main items, but asymmetrically: the whole
+evaluation dataset only contains 4 known-incorrect matches (there simply
+aren't more in the real data), so those same 4 (`M01`-`M04`) repeat in
+every block — otherwise "covering more cases" would mean inventing fake
+errors. Each block then adds 4 *different* correct matches (`M05`-`M20`,
+16 unique across the 4 blocks) spanning a range of food groups and
+similarity scores, so the correct-match coverage is broad even though
+the incorrect-match coverage is capped by what's actually in the data.
 
 ## 2. Block routing
 

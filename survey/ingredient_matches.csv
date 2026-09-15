@@ -1,9 +1,33 @@
-match_id,query,food_group,matched_food,score
-M01,penne,Cereals and cereal products,"Pate, liver",48.5
-M02,fettuccine,Cereals and cereal products,"Cheese, feta",56.2
-M03,garbanzo,Pulses,Guava,55.0
-M04,garbanzo bean,Pulses,Green bean,67.1
-M05,baby carrot,Vegetables,Wild carrot,78.5
-M06,shredded carrot,Vegetables,Carrot,71.2
-M07,broccoli florets,Vegetables,Broccoli,87.3
-M08,mineral water,Beverages,"Water, carbonated",56.7
+match_id,block_id,query,food_group,matched_food,score
+M01,1,penne,Cereals and cereal products,"Pate, liver",48.5
+M02,1,fettuccine,Cereals and cereal products,"Cheese, feta",56.2
+M03,1,garbanzo,Pulses,Guava,55.0
+M04,1,garbanzo bean,Pulses,Green bean,67.1
+M05,1,baby carrot,Vegetables,Wild carrot,78.5
+M06,1,shredded carrot,Vegetables,Carrot,71.2
+M07,1,broccoli florets,Vegetables,Broccoli,87.3
+M08,1,mineral water,Beverages,"Water, carbonated",56.7
+M01,2,penne,Cereals and cereal products,"Pate, liver",48.5
+M02,2,fettuccine,Cereals and cereal products,"Cheese, feta",56.2
+M03,2,garbanzo,Pulses,Guava,55.0
+M04,2,garbanzo bean,Pulses,Green bean,67.1
+M09,2,sourdough bread,Cereals and cereal products,"Bread, french or vienna (includes sourdough)",65.7
+M10,2,ground beef,Animal foods,"Beef, grass-fed, ground, raw",66.3
+M11,2,silken tofu,Soy,"Tofu, soft, VITASOY-silken",69.0
+M12,2,salmon fillet,Aquatic foods,"Salmon, salted",71.3
+M01,3,penne,Cereals and cereal products,"Pate, liver",48.5
+M02,3,fettuccine,Cereals and cereal products,"Cheese, feta",56.2
+M03,3,garbanzo,Pulses,Guava,55.0
+M04,3,garbanzo bean,Pulses,Green bean,67.1
+M13,3,fresh garlic,Herbs and Spices,Garlic,74.1
+M14,3,whole milk,Milk and milk products,"Milk, whole, cultured",74.3
+M15,3,pumpkin seeds,Seeds,"Pumpkin, canned",75.2
+M16,3,raw walnut,Nuts,Walnuts,79.5
+M01,4,penne,Cereals and cereal products,"Pate, liver",48.5
+M02,4,fettuccine,Cereals and cereal products,"Cheese, feta",56.2
+M03,4,garbanzo,Pulses,Guava,55.0
+M04,4,garbanzo bean,Pulses,Green bean,67.1
+M17,4,extra virgin olive oil,Herbs and Spices,"Olive oil, extra-virgin",83.7
+M18,4,cheddar cheese,Milk and milk products,"Cheese, cheddar",84.4
+M19,4,flax seeds,Seeds,Flaxseed,85.8
+M20,4,raw almond,Nuts,"Almond, raw",86.3
