@@ -98,6 +98,7 @@ ENGLISH_LEVEL_OPTIONS = [
     "Nativo / bilingüe",
 ]
 CORRECTNESS_OPTIONS = ["De acuerdo", "En desacuerdo", "No estoy seguro/a"]
+MATCH_QUALITY_OPTIONS = ["Perfecto", "Más o menos", "Nada que ver"]
 OVERSIMPLIFIED_OPTIONS = ["Sí", "No"]
 
 MIN_AGE = 16
@@ -422,7 +423,7 @@ def render_survey(block_id: str, block_items: pd.DataFrame, ingredient_matches: 
             )
             match_correctness = st.radio(
                 "¿Es correcto este emparejamiento?",
-                CORRECTNESS_OPTIONS,
+                MATCH_QUALITY_OPTIONS,
                 index=None,
                 key=f"match_{match_row['match_id']}",
                 horizontal=True,
