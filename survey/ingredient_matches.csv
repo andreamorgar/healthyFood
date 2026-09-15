@@ -1,9 +1,9 @@
 match_id,query,food_group,matched_food,score
-M01,penne,Cereals and cereal products,"Pate, liver",0.4849
-M02,fettuccine,Cereals and cereal products,"Cheese, feta",0.5621
-M03,garbanzo,Pulses,Guava,0.5500
-M04,garbanzo bean,Pulses,Green bean,0.6708
-M05,carrot,Vegetables,Carrot,1.0
-M06,baby carrot,Vegetables,Wild carrot,0.785
-M07,shredded carrot,Vegetables,Carrot,0.7115
-M08,broccoli florets,Vegetables,Broccoli,0.8729
+M01,penne,Cereals and cereal products,"Pate, liver",48.5
+M02,fettuccine,Cereals and cereal products,"Cheese, feta",56.2
+M03,garbanzo,Pulses,Guava,55.0
+M04,garbanzo bean,Pulses,Green bean,67.1
+M05,carrot,Vegetables,Carrot,100.0
+M06,baby carrot,Vegetables,Wild carrot,78.5
+M07,shredded carrot,Vegetables,Carrot,71.2
+M08,broccoli florets,Vegetables,Broccoli,87.3
