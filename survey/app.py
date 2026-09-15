@@ -61,7 +61,7 @@ RESPONSES_WORKSHEET = "responses"
 ITEMS_CSV_PATH = Path(__file__).parent / "items.csv"
 
 YEAR_OF_STUDY_OPTIONS = ["1", "2", "3", "4", "5", "6", "Postgrado"]
-SPECIALIZATION_OPTIONS = ["Nutrición", "Dietética", "Medicina", "Otra"]
+SPECIALIZATION_OPTIONS = ["Nutrición", "Dietética", "Otra"]
 GENDER_OPTIONS = ["Mujer", "Hombre", "No binario", "Prefiero no decirlo", "Otro"]
 ENGLISH_LEVEL_OPTIONS = [
     "Principiante (A1-A2)",
